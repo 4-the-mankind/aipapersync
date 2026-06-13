@@ -1,8 +1,9 @@
 'use strict';
 
-const fs = require('fs');
+const fs  = require('fs');
 const path = require('path');
 const AdmZip = require('adm-zip');
+const log  = require('../main/logger');
 
 const APP_TYPES = [
   { appType: 'APP_PAPER',    label: 'Paper' },
@@ -31,8 +32,23 @@ class SyncEngine {
     this.aborted = true;
   }
 
+  /**
+   * Forwards `msg` to both the file logger and the UI log callback.
+   * @param {string} msg
+   */
   log(msg) {
+    log.info(msg);
     this.onLog(msg);
+  }
+
+  /**
+   * Logs an error to the file logger and forwards a plain-text version to the UI.
+   * @param {string} context - Label prefix (e.g. folder name).
+   * @param {Error}  err
+   */
+  logError(context, err) {
+    log.error(`[${context}] ${err.message}`);
+    this.onLog(`[${context}] ERROR: ${err.message}`);
   }
 
   async get(endpoint) {
@@ -74,7 +90,7 @@ class SyncEngine {
         this.onProgress({ type: 'folder-done', folder: label, ...folderResult });
         this.log(`[${label}] Done — ${folderResult.created} created, ${folderResult.overwritten} overwritten`);
       } catch (err) {
-        this.log(`[${label}] Error: ${err.message}`);
+        this.logError(label, err);
         results.errors.push({ folder: label, error: err.message });
         this.onProgress({ type: 'folder-error', folder: label, error: err.message });
       }

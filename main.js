@@ -2,61 +2,20 @@
 
 const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage } = require('electron');
 const path = require('path');
-const fs = require('fs');
 const { execSync } = require('child_process');
 
-const CONFIG_PATH = path.join(__dirname, 'data', 'config.json');
-const HISTORY_PATH = path.join(__dirname, 'data', 'history.json');
-const ICON_PATH = path.join(__dirname, 'assets', 'icon.png');
-const STARTUP_KEY = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
+const { loadConfig, saveConfig }                  = require('./main/config');
+const { loadHistory, saveHistory, appendHistory } = require('./main/history');
+const log                                         = require('./main/logger');
+
+const ICON_PATH    = path.join(__dirname, 'assets', 'icon.png');
+const STARTUP_KEY  = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
 const STARTUP_NAME = 'AIPaperSync';
 
 let tray = null;
 let win = null;
 let currentEngine = null;
 let syncRunning = false;
-
-// ── Config ───────────────────────────────────────────────────────────────────
-
-function loadConfig() {
-  try {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-  } catch {
-    return {
-      tabletUrl: 'http://192.168.0.69:8090',
-      outputDir: '%USERPROFILE%\\Downloads',
-      noteFormat: 'pdf',
-      startWithWindows: true,
-      syncOnStartup: true,
-    };
-  }
-}
-
-function saveConfig(cfg) {
-  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), 'utf8');
-}
-
-// ── History ──────────────────────────────────────────────────────────────────
-
-function loadHistory() {
-  try {
-    return JSON.parse(fs.readFileSync(HISTORY_PATH, 'utf8'));
-  } catch {
-    return [];
-  }
-}
-
-function saveHistory(history) {
-  fs.mkdirSync(path.dirname(HISTORY_PATH), { recursive: true });
-  fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2), 'utf8');
-}
-
-function appendHistory(entries) {
-  const history = loadHistory();
-  history.unshift(...entries);
-  saveHistory(history.slice(0, 5000));
-}
 
 // ── Windows startup registry ─────────────────────────────────────────────────
 
@@ -76,7 +35,7 @@ function setStartup(enabled) {
     }
     return true;
   } catch (e) {
-    console.error('Registry error:', e.message);
+    log.error(`Registry ${enabled ? 'add' : 'delete'} failed: ${e.message}`);
     return false;
   }
 }
@@ -122,16 +81,20 @@ function sendToRenderer(channel, payload) {
 async function runSync() {
   if (syncRunning) return { error: 'Sync already running' };
   syncRunning = true;
+  log.info('Sync started');
 
   const cfg = loadConfig();
   const SyncEngine = require('./sync/syncEngine');
 
   currentEngine = new SyncEngine({
-    tabletUrl: cfg.tabletUrl,
-    outputDir: cfg.outputDir,
+    tabletUrl:  cfg.tabletUrl,
+    outputDir:  cfg.outputDir,
     noteFormat: cfg.noteFormat,
     onProgress: (evt) => sendToRenderer('sync:progress', evt),
-    onLog: (msg) => sendToRenderer('sync:log', msg),
+    onLog: (msg) => {
+      log.info(msg);
+      sendToRenderer('sync:log', msg);
+    },
   });
 
   try {
@@ -139,9 +102,11 @@ async function runSync() {
     if (result.history && result.history.length > 0) {
       appendHistory(result.history);
     }
+    log.info(`Sync complete — ${result.created ?? 0} created, ${result.overwritten ?? 0} overwritten, ${(result.errors || []).length} errors`);
     sendToRenderer('sync:complete', result);
     return result;
   } catch (err) {
+    log.error(err);
     sendToRenderer('sync:error', { error: err.message });
     return { error: err.message };
   } finally {
@@ -217,6 +182,7 @@ app.whenReady().then(() => {
     return;
   }
 
+  log.info(`App started (electron ${process.versions.electron}, node ${process.versions.node})`);
   createTray();
 
   const cfg = loadConfig();
@@ -242,4 +208,5 @@ app.on('window-all-closed', (e) => {
 
 app.on('before-quit', () => {
   if (currentEngine) currentEngine.abort();
+  log.info('App quitting');
 });
