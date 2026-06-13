@@ -1,0 +1,15 @@
+{
+  "name": "aipapersync",
+  "version": "1.0.0",
+  "description": "Viewood AIPaper tablet sync — Windows tray application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

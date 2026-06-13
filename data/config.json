@@ -1,0 +1,7 @@
+{
+  "tabletUrl": "http://192.168.0.69:8090",
+  "outputDir": "%USERPROFILE%\\Downloads",
+  "noteFormat": "pdf",
+  "startWithWindows": true,
+  "syncOnStartup": true
+}

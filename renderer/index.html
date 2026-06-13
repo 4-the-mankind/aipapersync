@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>AIPaper Sync</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Title bar -->
+  <div id="titlebar">
+    <div id="titlebar-left">
+      <span id="connectivity-dot" title="Tablet connectivity"></span>
+      <span id="app-title">AIPaper Sync</span>
+    </div>
+    <div id="titlebar-controls">
+      <button class="win-btn" id="btn-minimize" title="Minimize to tray">&#x2212;</button>
+      <button class="win-btn close" id="btn-close" title="Close">&#x2715;</button>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div id="tabbar">
+    <button class="tab-btn active" data-tab="status">Status</button>
+    <button class="tab-btn" data-tab="history">History</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- Panels -->
+  <div id="panels">
+
+    <!-- ── Status ── -->
+    <div class="panel active" id="panel-status">
+      <div id="status-meta">
+        <div class="meta-item">
+          <div class="meta-label">Last sync</div>
+          <div class="meta-value" id="last-sync-time">Never</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Result</div>
+          <div class="meta-value" id="last-sync-result">—</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Tablet</div>
+          <div class="meta-value" id="tablet-status">Checking...</div>
+        </div>
+      </div>
+
+      <div id="sync-action-row">
+        <button class="btn" id="btn-sync-now">&#x21BB; &nbsp;Sync Now</button>
+        <button class="btn btn-outline" id="btn-abort" style="display:none">&#x25A0; &nbsp;Abort</button>
+      </div>
+
+      <div id="progress-section">
+        <div class="card">
+          <div id="folder-bars"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Log</span>
+          <button class="btn btn-outline" id="btn-clear-log" style="padding:4px 14px;font-size:12px">Clear</button>
+        </div>
+        <div id="log-box"></div>
+      </div>
+    </div>
+
+    <!-- ── History ── -->
+    <div class="panel" id="panel-history">
+      <div id="history-toolbar">
+        <button class="btn btn-danger" id="btn-clear-history">Clear History</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="history-table-wrap">
+          <table id="history-table">
+            <thead>
+              <tr>
+                <th>Date / Time</th>
+                <th>Folder</th>
+                <th>File Path</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+        <div id="history-empty">No sync history yet.<br>Run a sync to see results here.</div>
+      </div>
+    </div>
+
+    <!-- ── Settings ── -->
+    <div class="panel" id="panel-settings">
+      <div class="card">
+        <div class="setting-group">
+          <div class="setting-group-title">Connection</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Tablet URL</div>
+              <div class="setting-desc">Local network address of your AIPaper tablet</div>
+            </div>
+            <div class="setting-control">
+              <input type="url" id="cfg-tablet-url" placeholder="http://192.168.0.69:8090">
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-group-title">Sync</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Output Folder</div>
+              <div class="setting-desc">Where synced files are saved on this PC</div>
+            </div>
+            <div class="setting-control">
+              <input type="text" id="cfg-output-dir" placeholder="E:\Downloads\aipaper">
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Note Format</div>
+              <div class="setting-desc">File format exported from the tablet</div>
+            </div>
+            <div class="setting-control">
+              <select id="cfg-note-format">
+                <option value="pdf">PDF</option>
+                <option value="note">Note (original)</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Sync on Startup</div>
+              <div class="setting-desc">Automatically sync when the app launches</div>
+            </div>
+            <div class="setting-control">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-sync-on-startup">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <div class="setting-group-title">Windows</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Start with Windows</div>
+              <div class="setting-desc">Launch in system tray at login (visible in Task Manager → Startup apps)</div>
+            </div>
+            <div class="setting-control">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-start-with-windows">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="settings-save-row">
+          <button class="btn" id="btn-save-settings">Save Settings</button>
+          <span id="save-feedback">&#x2713; &nbsp;Saved</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panels -->
+</div><!-- /app -->
+
+<script src="utils.js"></script>
+  <script src="status.js"></script>
+  <script src="history.js"></script>
+  <script src="settings.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
