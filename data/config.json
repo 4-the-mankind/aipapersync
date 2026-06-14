@@ -1,8 +1,9 @@
 {
   "tabletUrl": "http://192.168.0.69:8090",
-  "outputDir": "E:\\Téléchargements\\tmp\\aipaper",
+  "outputDir": "%USERPROFILE%\\Downloads",
   "noteFormat": "pdf",
   "syncOnStartup": true,
   "incremental": true,
-  "startWithWindows": true
+  "startWithWindows": true,
+  "closeBehavior": "tray"
 }

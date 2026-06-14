@@ -4,9 +4,10 @@ const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, globalShortcut } =
 const path = require('path');
 const { execSync } = require('child_process');
 
-const { loadConfig, saveConfig }                  = require('./main/config');
-const { loadHistory, saveHistory, appendHistory } = require('./main/history');
-const log                                         = require('./main/logger');
+const { loadConfig, saveConfig }                        = require('./main/config');
+const { loadHistory, saveHistory, appendHistory }       = require('./main/history');
+const { getLastSync, setLastSync }                      = require('./main/syncstate');
+const log                                               = require('./main/logger');
 
 const ICON_PATH    = path.join(__dirname, 'assets', 'icon.png');
 const STARTUP_KEY  = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
@@ -50,7 +51,7 @@ function createWindow() {
 
   win = new BrowserWindow({
     width: 820,
-    height: 600,
+    height: 652,
     minWidth: 700,
     minHeight: 500,
     frame: false,
@@ -103,7 +104,14 @@ async function runSync() {
     if (result.history && result.history.length > 0) {
       appendHistory(result.history);
     }
-    log.info(`Sync complete — ${result.created ?? 0} created, ${result.overwritten ?? 0} overwritten, ${(result.errors || []).length} errors`);
+    const errCount = (result.errors || []).length;
+    const parts = [];
+    if ((result.created     || 0) > 0) parts.push(`${result.created} created`);
+    if ((result.overwritten || 0) > 0) parts.push(`${result.overwritten} overwritten`);
+    if (errCount > 0)                   parts.push(`${errCount} error(s)`);
+    const resultMsg = parts.length ? parts.join(', ') : 'No changes';
+    setLastSync(new Date().toISOString(), resultMsg);
+    log.info(`Sync complete — ${result.created ?? 0} created, ${result.overwritten ?? 0} overwritten, ${errCount} errors`);
     sendToRenderer('sync:complete', result);
     return result;
   } catch (err) {
@@ -135,6 +143,8 @@ ipcMain.handle('history:clear', () => {
   return true;
 });
 
+ipcMain.handle('appstate:get', () => getLastSync());
+
 ipcMain.handle('sync:now', () => runSync());
 
 ipcMain.handle('sync:abort', () => {
@@ -153,7 +163,15 @@ ipcMain.handle('startup:set', (_e, enabled) => setStartup(enabled));
 
 // Window control IPC (frameless window)
 ipcMain.on('window:minimize', () => { if (win) win.minimize(); });
-ipcMain.on('window:close', () => { if (win) win.close(); });
+ipcMain.on('window:close', () => {
+  if (!win) return;
+  const cfg = loadConfig();
+  if (cfg.closeBehavior === 'quit') {
+    app.quit();
+  } else {
+    win.close(); // stays in tray via window-all-closed handler
+  }
+});
 
 // DevTools — only available when running from source, never in a packaged build
 if (!app.isPackaged) {

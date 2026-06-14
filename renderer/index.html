@@ -50,20 +50,23 @@
       </div>
 
       <div id="sync-action-row">
-        <button class="btn" id="btn-sync-now">&#x21BB; &nbsp;Sync Now</button>
+        <button class="btn btn-sync" id="btn-sync-now">&#x21BB; &nbsp;Sync Now</button>
         <button class="btn btn-outline" id="btn-abort" style="display:none">&#x25A0; &nbsp;Abort</button>
       </div>
 
-      <div id="progress-section">
-        <div class="card">
-          <div id="folder-bars"></div>
-        </div>
+      <div class="card" id="folders-card">
+        <div id="folder-bars"></div>
       </div>
 
-      <div class="card" style="margin-top:0">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Log</span>
-          <div style="display:flex;gap:6px">
+      <div id="progress-section"></div>
+
+      <div class="card log-card" id="log-card">
+        <div class="log-header" id="log-toggle">
+          <div style="display:flex;align-items:center;gap:8px">
+            <svg class="log-chevron" id="log-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted)">Log</span>
+          </div>
+          <div style="display:flex;gap:6px" id="log-actions">
             <button class="btn-icon" id="btn-copy-log" title="Copy log to clipboard">
               <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </button>
@@ -72,7 +75,9 @@
             </button>
           </div>
         </div>
-        <div id="log-box"></div>
+        <div class="log-body" id="log-body">
+          <div id="log-box"></div>
+        </div>
       </div>
     </div>
 
@@ -181,6 +186,18 @@
                 <input type="checkbox" id="cfg-start-with-windows">
                 <span class="toggle-slider"></span>
               </label>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Close button behavior</div>
+              <div class="setting-desc">What happens when you click ✕ on the window</div>
+            </div>
+            <div class="setting-control">
+              <select id="cfg-close-behavior">
+                <option value="tray">Minimize to tray</option>
+                <option value="quit">Quit app</option>
+              </select>
             </div>
           </div>
         </div>

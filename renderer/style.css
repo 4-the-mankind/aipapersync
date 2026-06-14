@@ -220,9 +220,21 @@ html, body {
   margin-bottom: 20px;
 }
 
-/* Progress section */
+.btn-sync {
+  flex: 1;
+  justify-content: center;
+  background: #fff;
+  color: var(--text);
+  border-color: var(--text);
+  font-size: 14px;
+  padding: 14px 24px;
+}
+.btn-sync:hover { background: var(--surface); border-color: var(--text); color: var(--text); }
+.btn-sync:active { transform: scale(.98); }
+
+/* Folder bars card — always visible */
+#folders-card { margin-bottom: 16px; }
 #progress-section { display: none; }
-#progress-section.visible { display: block; }
 
 .folder-row {
   margin-bottom: 12px;
@@ -248,6 +260,33 @@ html, body {
   width: 0%;
 }
 
+/* Log collapsible */
+.log-card { padding: 0; overflow: hidden; }
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.log-header:hover { background: var(--surface); }
+.log-chevron {
+  width: 14px; height: 14px;
+  stroke: var(--text-muted); fill: none;
+  stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform .2s ease;
+  flex-shrink: 0;
+}
+.log-card.open .log-chevron { transform: rotate(90deg); }
+.log-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .25s ease;
+}
+.log-card.open .log-body { max-height: 220px; }
+#log-actions { transition: opacity .15s; }
+
 /* Log box */
 #log-box {
   background: #111;
@@ -255,8 +294,7 @@ html, body {
   font-family: 'Cascadia Code', 'Consolas', monospace;
   font-size: 12px;
   padding: 14px 16px;
-  border-radius: var(--radius-sm);
-  height: 150px;
+  height: 180px;
   overflow-y: auto;
   line-height: 1.6;
 }

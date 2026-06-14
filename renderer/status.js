@@ -2,7 +2,10 @@
 
 // ── Status tab ────────────────────────────────────────────────────────────────
 // Owns: connectivity indicator, Sync Now / Abort buttons,
-//       per-folder progress bars, and the live log box.
+//       per-folder progress bars, and the collapsible live log.
+
+/** Hardcoded tablet root folders — users cannot add folders at the root level. */
+const FOLDER_LABELS = ['Paper', 'Daily', 'Meeting', 'Learning', 'Picking', 'Memo'];
 
 /** @type {boolean} Whether a sync is currently in progress. */
 let syncActive = false;
@@ -11,8 +14,8 @@ let syncActive = false;
 
 /**
  * Appends a timestamped line to the log box and auto-scrolls to the bottom.
- *
- * @param {string} msg - Plain-text message to display.
+ * Also opens the log panel if it is collapsed.
+ * @param {string} msg
  */
 function appendLog(msg) {
   const box = $('log-box');
@@ -27,8 +30,6 @@ function appendLog(msg) {
 
 /**
  * Pings the tablet and updates the connectivity dot + status label.
- * Called once on page load and then on a 30-second interval.
- *
  * @returns {Promise<void>}
  */
 async function checkConnectivity() {
@@ -49,11 +50,9 @@ async function checkConnectivity() {
 // ── Progress bars ─────────────────────────────────────────────────────────────
 
 /**
- * Returns the progress row element for `folder`, creating it lazily if it
- * does not already exist in the DOM.
- *
- * @param {string} folder - Display name of the tablet folder (e.g. "Paper").
- * @returns {HTMLElement} The `.folder-row` div for this folder.
+ * Returns the progress row for `folder`, creating it lazily if needed.
+ * @param {string} folder
+ * @returns {HTMLElement}
  */
 function ensureFolderBar(folder) {
   const container = $('folder-bars');
@@ -76,12 +75,24 @@ function ensureFolderBar(folder) {
 }
 
 /**
- * Updates the fill width and text label of the packaging progress bar.
- * When `total` is 0 the bar stays at 0 % and is labelled "Empty".
- *
- * @param {string} folder   - Folder display name.
- * @param {number} packaged - Number of files packaged so far.
- * @param {number} total    - Total number of files to package.
+ * Resets all folder bars to the idle "waiting" state.
+ * Called before a new sync so stale results don't linger.
+ */
+function resetFolderBars() {
+  FOLDER_LABELS.forEach(folder => {
+    ensureFolderBar(folder);
+    const fill  = $(`bar-fill-${folder}`);
+    const label = $(`bar-label-${folder}`);
+    if (fill)  { fill.style.width = '0%'; fill.style.background = 'var(--accent)'; }
+    if (label) { label.textContent = '—'; label.style.color = ''; }
+  });
+}
+
+/**
+ * Updates the packaging progress bar.
+ * @param {string} folder
+ * @param {number} packaged
+ * @param {number} total
  */
 function updateFolderBar(folder, packaged, total) {
   ensureFolderBar(folder);
@@ -97,43 +108,23 @@ function updateFolderBar(folder, packaged, total) {
   }
 }
 
-/**
- * Removes all per-folder progress bar rows from the DOM.
- * Called before starting a new sync run so stale bars don't linger.
- */
-function clearFolderBars() {
-  $('folder-bars').innerHTML = '';
-}
-
 // ── Sync state ────────────────────────────────────────────────────────────────
 
 /**
- * Toggles the UI between "idle" and "syncing" states:
- * - Swaps the Sync Now / Abort button visibility.
- * - Shows or hides the progress section.
- *
- * @param {boolean} active - `true` while a sync is running.
+ * Toggles the UI between idle and syncing states.
+ * @param {boolean} active
  */
 function setSyncActive(active) {
   syncActive = active;
-  $('btn-sync-now').style.display  = active ? 'none' : '';
-  $('btn-abort').style.display     = active ? '' : 'none';
-  $('progress-section').classList.toggle('visible', active);
+  $('btn-sync-now').style.display = active ? 'none' : '';
+  $('btn-abort').style.display    = active ? '' : 'none';
 }
 
 // ── IPC event handlers ────────────────────────────────────────────────────────
 
 /**
- * Handles granular progress events emitted by syncEngine:
- * - `packaging`      → fill bar by packaged/total count.
- * - `download-start` → reset bar to 0 % before bytes arrive.
- * - `download`       → fill bar by bytes received/total.
- * - `folder-done`    → fill bar to 100 %.
- * - `folder-error`   → mark bar label as failed.
- *
- * @param {{ type: string, folder: string, packaged?: number, total?: number,
- *           received?: number, created?: number, overwritten?: number,
- *           skipped?: number, error?: string }} evt
+ * Handles granular sync progress events from the main process.
+ * @param {{ type: string, folder: string, [key: string]: any }} evt
  */
 function onSyncProgress(evt) {
   if (evt.type === 'folder-start') {
@@ -143,14 +134,13 @@ function onSyncProgress(evt) {
     ensureFolderBar(evt.folder);
     const fill  = $(`bar-fill-${evt.folder}`);
     const label = $(`bar-label-${evt.folder}`);
-    if (fill)  fill.style.width  = '100%';
+    if (fill)  { fill.style.width = '100%'; fill.style.background = 'var(--border)'; }
     if (label) { label.textContent = 'No changes'; label.style.color = 'var(--text-muted)'; }
   }
   if (evt.type === 'packaging') {
-    updateFolderBar(evt.folder, evt.packaged, evt.total, 'pkg');
+    updateFolderBar(evt.folder, evt.packaged, evt.total);
   }
   if (evt.type === 'download-start') {
-    // Reset bar to 0 so it visually shows download progress from scratch
     const fill  = $(`bar-fill-${evt.folder}`);
     const label = $(`bar-label-${evt.folder}`);
     if (fill)  fill.style.width   = '0%';
@@ -166,32 +156,46 @@ function onSyncProgress(evt) {
   if (evt.type === 'folder-done') {
     const fill  = $(`bar-fill-${evt.folder}`);
     const label = $(`bar-label-${evt.folder}`);
-    if (fill)  fill.style.width   = '100%';
+    if (fill)  fill.style.width = '100%';
     if (label) {
-      const parts = [];
-      if (evt.created)    parts.push(`${evt.created} new`);
-      if (evt.overwritten) parts.push(`${evt.overwritten} updated`);
-      if (evt.skipped)    parts.push(`${evt.skipped} unchanged`);
-      label.textContent = parts.length ? parts.join(', ') : 'Done';
+      if (evt.entirelySkipped) {
+        label.textContent = 'No changes';
+        label.style.color = 'var(--text-muted)';
+      } else {
+        const parts = [];
+        if (evt.created)     parts.push(`${evt.created} new`);
+        if (evt.overwritten) parts.push(`${evt.overwritten} updated`);
+        if (evt.skipped)     parts.push(`${evt.skipped} unchanged`);
+        label.textContent = parts.length ? parts.join(', ') : 'Done';
+      }
     }
   }
   if (evt.type === 'folder-error') {
+    const fill  = $(`bar-fill-${evt.folder}`);
     const label = $(`bar-label-${evt.folder}`);
+    if (fill)  fill.style.background = 'var(--error)';
     if (label) { label.textContent = 'Error'; label.style.color = 'var(--error)'; }
   }
 }
 
 /**
  * Handles the `sync:complete` event from the main process.
- * Updates the "Last sync" metadata row, resets the UI to idle state,
- * and re-checks tablet connectivity.
- *
  * @param {{ total: number, created: number, overwritten: number,
  *           errors: Array<{folder:string,error:string}>, error?: string }} result
  */
 function onSyncComplete(result) {
   setSyncActive(false);
-  $('last-sync-time').textContent = new Date().toLocaleString();
+  // After a brief delay, fade bars back to idle grey so they're ready for next sync
+  setTimeout(() => {
+    FOLDER_LABELS.forEach(folder => {
+      const fill  = $(`bar-fill-${folder}`);
+      const label = $(`bar-label-${folder}`);
+      if (fill)  fill.style.background = 'var(--border)';
+      if (label && label.style.color !== 'var(--error)') label.style.color = 'var(--text-muted)';
+    });
+  }, 3000);
+  const now = new Date().toLocaleString();
+  $('last-sync-time').textContent = now;
 
   if (result.error) {
     $('last-sync-result').textContent = `Error: ${result.error}`;
@@ -199,20 +203,21 @@ function onSyncComplete(result) {
     appendLog(`Sync failed: ${result.error}`);
   } else {
     const errCount = (result.errors || []).length;
-    const msg = errCount > 0
-      ? `${result.total} files, ${errCount} error(s)`
-      : `${result.total} files synced`;
+    const parts = [];
+    if ((result.created    || 0) > 0) parts.push(`${result.created} created`);
+    if ((result.overwritten|| 0) > 0) parts.push(`${result.overwritten} overwritten`);
+    if (errCount > 0)                  parts.push(`${errCount} error(s)`);
+    const msg = parts.length ? parts.join(', ') : 'No changes';
     $('last-sync-result').textContent = msg;
     $('last-sync-result').style.color  = errCount > 0 ? 'var(--warn)' : 'var(--success)';
-    appendLog(`Sync complete — ${result.created} created, ${result.overwritten} overwritten${errCount ? `, ${errCount} errors` : ''}`);
+    appendLog(`Sync complete — ${result.created ?? 0} created, ${result.overwritten ?? 0} overwritten${errCount ? `, ${errCount} errors` : ''}`);
   }
 
   checkConnectivity();
 }
 
 /**
- * Handles a fatal `sync:error` event (thrown before the engine could finish).
- *
+ * Handles a fatal `sync:error` event.
  * @param {{ error: string }} data
  */
 function onSyncError(data) {
@@ -225,17 +230,26 @@ function onSyncError(data) {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 /**
- * Wires up all Status-tab event listeners and kicks off the first connectivity
- * check. Called once by `renderer.js` after the DOM is ready.
- *
- * @param {function(string): void} onTabSwitch - Callback invoked with a tab name
- *   when the renderer switches away from Status (used to refresh other panels).
+ * Wires up all Status-tab event listeners.
+ * Called once by `renderer.js` after the DOM is ready.
  */
-function initStatus(onTabSwitch) {
+async function initStatus() {
+  // Pre-render folder bars so they're visible immediately at launch
+  resetFolderBars();
+
+  // Load persisted last-sync (survives history clears)
+  try {
+    const appState = await window.api.getAppState();
+    if (appState.time) {
+      $('last-sync-time').textContent   = new Date(appState.time).toLocaleString();
+      $('last-sync-result').textContent = appState.result || '—';
+    }
+  } catch { /* first run */ }
+
   // Sync Now button
   $('btn-sync-now').addEventListener('click', async () => {
     if (syncActive) return;
-    clearFolderBars();
+    resetFolderBars();
     setSyncActive(true);
     appendLog('Starting sync...');
     await window.api.syncNow();
@@ -245,6 +259,20 @@ function initStatus(onTabSwitch) {
   $('btn-abort').addEventListener('click', () => {
     window.api.abortSync();
     appendLog('Aborting sync...');
+  });
+
+  // Collapsible log panel
+  $('log-toggle').addEventListener('click', (e) => {
+    // Don't collapse when clicking the icon buttons inside the header
+    if (e.target.closest('#log-actions')) return;
+    const card = $('log-card');
+    card.classList.toggle('open');
+    if (card.classList.contains('open')) {
+      setTimeout(() => {
+        const panel = $('panel-status');
+        panel.scrollTop = panel.scrollHeight;
+      }, 260);
+    }
   });
 
   // Clear log button

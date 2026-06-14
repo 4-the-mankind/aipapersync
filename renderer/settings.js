@@ -30,6 +30,7 @@ async function saveSettings() {
     syncOnStartup:    $('cfg-sync-on-startup').checked,
     incremental:      $('cfg-incremental').checked,
     startWithWindows: $('cfg-start-with-windows').checked,
+    closeBehavior:    $('cfg-close-behavior').value,
   };
 
   await window.api.saveConfig(cfg);
@@ -63,6 +64,7 @@ async function loadSettings() {
   $('cfg-sync-on-startup').checked    = !!cfg.syncOnStartup;
   $('cfg-incremental').checked        = cfg.incremental !== false;
   $('cfg-start-with-windows').checked = !!cfg.startWithWindows;
+  $('cfg-close-behavior').value       = cfg.closeBehavior || 'tray';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
@@ -84,4 +86,5 @@ function initSettings() {
   $('cfg-sync-on-startup').addEventListener('change', saveSettings);
   $('cfg-incremental').addEventListener('change', saveSettings);
   $('cfg-start-with-windows').addEventListener('change', saveSettings);
+  $('cfg-close-behavior').addEventListener('change', saveSettings);
 }

@@ -12,6 +12,7 @@ const DEFAULTS = {
   noteFormat:       'pdf',
   startWithWindows: true,
   syncOnStartup:    true,
+  closeBehavior:    'tray',
 };
 
 /**

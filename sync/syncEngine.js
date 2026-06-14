@@ -63,7 +63,7 @@ class SyncEngine {
     try {
       const res = await fetch(
         `${this.tabletUrl}/getChildFolderList?appType=root&folderId=&folderName=Home&language=en`,
-        { signal: AbortSignal.timeout(5000) }
+        { signal: AbortSignal.timeout(10000) }
       );
       return res.ok;
     } catch { return false; }
@@ -91,9 +91,10 @@ class SyncEngine {
     for (const item of items) {
       if (item.updateTime > maxTime) maxTime = item.updateTime;
 
-      // Recurse into non-empty subfolders only if their own updateTime is
-      // newer than the last sync (avoids redundant deep walks).
-      if (item.isFolder && !item.isEmptyFolder && item.updateTime > lastSyncMs) {
+      // Recurse into non-empty subfolders. Always enter when updateTime === 0
+      // (the tablet doesn't track folder-level timestamps for system folders),
+      // prune only when we have a known timestamp older than the last sync.
+      if (item.isFolder && !item.isEmptyFolder && (item.updateTime === 0 || item.updateTime > lastSyncMs)) {
         const subMax = await this.getMaxUpdateTime(appType, item.noteId, item.fileName, lastSyncMs);
         if (subMax > maxTime) maxTime = subMax;
       }
@@ -153,13 +154,19 @@ class SyncEngine {
     const lastSyncMs = this.syncState[appType] || 0;
 
     // ── Incremental check: skip download if nothing changed ────────────────
-    if (this.incremental && lastSyncMs > 0) {
+    // We always store the tablet's own maxUpdateTime (not PC's Date.now()) so
+    // the comparison is clock-independent and survives tablet/PC clock skew.
+    let maxUpdateTime = 0;
+    if (this.incremental) {
       this.log(`[${label}] Checking for changes...`);
-      const maxUpdateTime = await this.getMaxUpdateTime(appType, '', label, lastSyncMs);
+      maxUpdateTime = await this.getMaxUpdateTime(appType, '', label, lastSyncMs);
 
-      if (maxUpdateTime > 0 && maxUpdateTime <= lastSyncMs) {
-        this.onProgress({ type: 'folder-skipped', folder: label });
-        return { created: 0, overwritten: 0, skipped: 0, entirelySkipped: true };
+      if (lastSyncMs > 0 && maxUpdateTime > 0 && maxUpdateTime <= lastSyncMs) {
+        if (this.hasLocalFiles(label)) {
+          this.onProgress({ type: 'folder-skipped', folder: label });
+          return { created: 0, overwritten: 0, skipped: 0, entirelySkipped: true };
+        }
+        this.log(`[${label}] Local files missing — re-downloading despite no tablet changes`);
       }
     }
 
@@ -200,8 +207,9 @@ class SyncEngine {
     // 6. Cleanup
     this.deleteSafe(tmpZip);
 
-    // 7. Persist sync timestamp so next run can skip this folder if unchanged
-    this.syncState[appType] = Date.now();
+    // 7. Persist the tablet's own maxUpdateTime (not PC clock) so next run's
+    //    comparison is clock-independent and survives tablet/PC time drift.
+    this.syncState[appType] = maxUpdateTime > 0 ? maxUpdateTime : Date.now();
     saveSyncState(this.syncState);
 
     return counts;
@@ -319,6 +327,26 @@ class SyncEngine {
     }
 
     return { created, overwritten, skipped };
+  }
+
+  /**
+   * Returns true if the local output subfolder for `label` exists and contains
+   * at least one file (recursively). Used to detect when the user deleted local
+   * files so we can force a re-download even when the tablet reports no changes.
+   * @param {string} label
+   * @returns {boolean}
+   */
+  hasLocalFiles(label) {
+    const dir = path.join(this.outputDir, label);
+    if (!fs.existsSync(dir)) return false;
+    const scan = (d) => {
+      for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+        if (entry.isFile()) return true;
+        if (entry.isDirectory() && scan(path.join(d, entry.name))) return true;
+      }
+      return false;
+    };
+    return scan(dir);
   }
 
   /** @param {string} filePath */

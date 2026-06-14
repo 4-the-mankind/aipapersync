@@ -57,16 +57,9 @@ document.addEventListener('keydown', (e) => {
  * @returns {Promise<void>}
  */
 async function init() {
-  initStatus();
+  await initStatus(); // async: loads persisted last-sync and pre-renders folder bars
   initHistory();
   initSettings();
-
-  // Populate last-sync meta from persisted history so it survives app restarts.
-  const history = await window.api.getHistory();
-  if (history && history.length > 0) {
-    $('last-sync-time').textContent   = formatDate(history[0].date);
-    $('last-sync-result').textContent = `${history.length} record${history.length !== 1 ? 's' : ''}`;
-  }
 }
 
 init();

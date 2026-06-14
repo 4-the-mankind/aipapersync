@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('api', {
   // Connectivity
   checkConnectivity: () => ipcRenderer.invoke('tablet:ping'),
 
+  // App state (last sync summary, persists across history clears)
+  getAppState: () => ipcRenderer.invoke('appstate:get'),
+
   // Startup
   setStartWithWindows: (enabled) => ipcRenderer.invoke('startup:set', enabled),
 
