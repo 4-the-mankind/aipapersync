@@ -51,7 +51,20 @@
 
       <div id="sync-action-row">
         <button class="btn btn-sync" id="btn-sync-now">&#x21BB; &nbsp;Sync Now</button>
-        <button class="btn btn-outline" id="btn-abort" style="display:none">&#x25A0; &nbsp;Abort</button>
+        <div id="btn-sync-controls" style="display:none">
+          <button class="btn-half btn-half-pause" id="btn-pause">
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
+            Pause
+          </button>
+          <button class="btn-half btn-half-pause" id="btn-resume" style="display:none">
+            <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            Resume
+          </button>
+          <button class="btn-half btn-half-abort" id="btn-abort">
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+            Abort
+          </button>
+        </div>
       </div>
 
       <div class="card" id="folders-card">
@@ -203,6 +216,7 @@
         </div>
 
       </div>
+      <div style="text-align:right;padding:12px 4px 0;font-size:11px;color:var(--text-muted)" id="app-version"></div>
     </div>
 
   </div><!-- /panels -->

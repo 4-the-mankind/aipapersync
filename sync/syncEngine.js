@@ -34,7 +34,20 @@ class SyncEngine {
     this.syncState   = loadSyncState();
   }
 
-  abort() { this.aborted = true; }
+  abort()  {
+    this.aborted = true;
+    this.paused  = false;
+    if (this._downloadController) this._downloadController.abort();
+  }
+  pause()  { this.paused = true; }
+  resume() { this.paused = false; }
+
+  /** Resolves once the engine is no longer paused (or immediately if not paused). */
+  async waitIfPaused() {
+    while (this.paused && !this.aborted) {
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
 
   /** @param {string} msg */
   log(msg) { log.info(msg); this.onLog(msg); }
@@ -50,12 +63,28 @@ class SyncEngine {
 
   /**
    * GET request to the tablet API with a 30-second timeout.
+   * Retries once after 3 seconds on network failure (handles tablet WiFi wake-up).
    * @param {string} endpoint
    */
   async get(endpoint) {
-    const res = await fetch(`${this.tabletUrl}${endpoint}`, { signal: AbortSignal.timeout(30000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${endpoint}`);
-    return res.json();
+    const url = `${this.tabletUrl}${endpoint}`;
+    const attempt = async () => {
+      const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status} for ${endpoint}`);
+      return res.json();
+    };
+    try {
+      return await attempt();
+    } catch (err) {
+      if (this.aborted) throw err;
+      // Network-level failure (not HTTP error) — wait 3s and retry once
+      if (err.name !== 'AbortError' && !err.message.startsWith('HTTP')) {
+        this.onLog(`[WARN] Request failed (${err.message}), retrying in 3s...`);
+        await new Promise(r => setTimeout(r, 3000));
+        return attempt();
+      }
+      throw err;
+    }
   }
 
   /** @returns {Promise<boolean>} */
@@ -109,6 +138,7 @@ class SyncEngine {
    */
   async run() {
     this.aborted    = false;
+    this.paused     = false;
     this.newHistory = [];
     const results   = { total: 0, created: 0, overwritten: 0, skipped: 0, errors: [] };
 
@@ -117,6 +147,8 @@ class SyncEngine {
       const { appType, label } = APP_TYPES[i];
 
       try {
+        await this.waitIfPaused();
+        if (this.aborted) break;
         this.log(`[${label}] Starting...`);
         this.onProgress({ type: 'folder-start', folder: label, folderIndex: i, folderTotal: APP_TYPES.length });
 
@@ -224,6 +256,8 @@ class SyncEngine {
     let emptyCount = 0;
     for (;;) {
       if (this.aborted) return;
+      await this.waitIfPaused();
+      if (this.aborted) return;
       await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
       const data     = await this.get(`/packageFolderProgress?appType=${appType}`);
       const progress = data.data || {};
@@ -260,9 +294,21 @@ class SyncEngine {
     const timeoutMs = Math.min(DOWNLOAD_TIMEOUT_MAX,
       Math.max(DOWNLOAD_TIMEOUT_MIN, Math.ceil((fileSize / DOWNLOAD_SPEED_BPS) * 1000 * 3)));
 
+    this._downloadController = new AbortController();
+    const timeoutId = setTimeout(() => { if (this._downloadController) this._downloadController.abort(); }, timeoutMs);
+
     const url = `${this.tabletUrl}/download?filePath=${encodeURIComponent(filePath)}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
-    if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
+    let res;
+    try {
+      res = await fetch(url, { signal: this._downloadController.signal });
+      if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      this._downloadController = null;
+      throw err;
+    }
+    // Keep _downloadController alive until the body is fully streamed so that
+    // abort() can cancel an in-progress reader.read() call at any point.
 
     const total    = parseInt(res.headers.get('content-length') || String(fileSize), 10);
     let   received = 0;
@@ -273,9 +319,20 @@ class SyncEngine {
     const reader = res.body.getReader();
 
     return new Promise((resolve, reject) => {
+      const finish = (err) => {
+        clearTimeout(timeoutId);
+        this._downloadController = null;
+        if (err) { writer.destroy(); reject(err); } else resolve();
+      };
+
       const pump = async () => {
         try {
           for (;;) {
+            // Check abort/pause between each network chunk
+            if (this.aborted) { writer.destroy(); clearTimeout(timeoutId); this._downloadController = null; resolve(); return; }
+            await this.waitIfPaused();
+            if (this.aborted) { writer.destroy(); clearTimeout(timeoutId); this._downloadController = null; resolve(); return; }
+
             const { done, value } = await reader.read();
             if (done) break;
             writer.write(Buffer.from(value));
@@ -283,9 +340,13 @@ class SyncEngine {
             this.onProgress({ type: 'download', folder: label, received, total });
           }
           writer.end();
-          writer.on('finish', resolve);
-          writer.on('error', reject);
-        } catch (err) { writer.destroy(); reject(err); }
+          writer.on('finish', () => finish(null));
+          writer.on('error', (err) => finish(err));
+        } catch (err) {
+          // AbortError thrown by reader.read() when _downloadController was aborted
+          if (this.aborted) { writer.destroy(); clearTimeout(timeoutId); this._downloadController = null; resolve(); }
+          else finish(err);
+        }
       };
       pump();
     });

@@ -229,8 +229,38 @@ html, body {
   font-size: 14px;
   padding: 14px 24px;
 }
-.btn-sync:hover { background: var(--surface); border-color: var(--text); color: var(--text); }
+.btn-sync:hover  { background: var(--surface); border-color: var(--text); color: var(--text); }
 .btn-sync:active { transform: scale(.98); }
+
+#btn-sync-controls {
+  flex: 1;
+  display: flex;
+  border: 1.5px solid var(--text);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.btn-half {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 0;
+  border: none;
+  background: #fff;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+  letter-spacing: .03em;
+}
+.btn-half svg { width: 14px; height: 14px; flex-shrink: 0; }
+.btn-half:active { transform: scale(.97); }
+.btn-half-pause { border-right: 1.5px solid var(--text); }
+#btn-resume     { border-right: 1.5px solid var(--text); }
+.btn-half-pause:hover { background: var(--surface); }
+.btn-half-abort:hover { background: #fef0ef; color: var(--error); }
 
 /* Folder bars card — always visible */
 #folders-card { margin-bottom: 16px; }

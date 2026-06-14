@@ -58,6 +58,10 @@ function debouncedSave() {
  */
 async function loadSettings() {
   const cfg = await window.api.getConfig();
+  try {
+    const v = await window.api.getVersion();
+    $('app-version').textContent = `v${v}`;
+  } catch { /* ignore */ }
   $('cfg-tablet-url').value           = cfg.tabletUrl            || '';
   $('cfg-output-dir').value           = cfg.outputDir            || '';
   $('cfg-note-format').value          = cfg.noteFormat           || 'pdf';

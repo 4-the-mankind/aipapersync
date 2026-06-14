@@ -12,14 +12,18 @@ contextBridge.exposeInMainWorld('api', {
   clearHistory: () => ipcRenderer.invoke('history:clear'),
 
   // Sync
-  syncNow: () => ipcRenderer.invoke('sync:now'),
-  abortSync: () => ipcRenderer.invoke('sync:abort'),
+  syncNow:    () => ipcRenderer.invoke('sync:now'),
+  syncStatus: () => ipcRenderer.invoke('sync:status'),
+  abortSync:  () => ipcRenderer.invoke('sync:abort'),
+  pauseSync:  () => ipcRenderer.invoke('sync:pause'),
+  resumeSync: () => ipcRenderer.invoke('sync:resume'),
 
   // Connectivity
   checkConnectivity: () => ipcRenderer.invoke('tablet:ping'),
 
   // App state (last sync summary, persists across history clears)
   getAppState: () => ipcRenderer.invoke('appstate:get'),
+  getVersion:  () => ipcRenderer.invoke('app:version'),
 
   // Startup
   setStartWithWindows: (enabled) => ipcRenderer.invoke('startup:set', enabled),
@@ -32,7 +36,7 @@ contextBridge.exposeInMainWorld('api', {
 
   // Events from main → renderer
   on: (channel, cb) => {
-    const allowed = ['sync:progress', 'sync:log', 'sync:complete', 'sync:error'];
+    const allowed = ['sync:progress', 'sync:log', 'sync:complete', 'sync:error', 'sync:state', 'sync:started'];
     if (allowed.includes(channel)) {
       ipcRenderer.on(channel, (_e, ...args) => cb(...args));
     }

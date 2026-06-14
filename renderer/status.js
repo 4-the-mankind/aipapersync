@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 // ── Status tab ────────────────────────────────────────────────────────────────
 // Owns: connectivity indicator, Sync Now / Abort buttons,
@@ -9,6 +9,9 @@ const FOLDER_LABELS = ['Paper', 'Daily', 'Meeting', 'Learning', 'Picking', 'Memo
 
 /** @type {boolean} Whether a sync is currently in progress. */
 let syncActive = false;
+
+/** Pending timeout that fades bars to grey after sync completes. */
+let _barFadeTimer = null;
 
 // ── Log ───────────────────────────────────────────────────────────────────────
 
@@ -79,6 +82,8 @@ function ensureFolderBar(folder) {
  * Called before a new sync so stale results don't linger.
  */
 function resetFolderBars() {
+  // Cancel any pending fade-to-grey from the previous sync
+  if (_barFadeTimer) { clearTimeout(_barFadeTimer); _barFadeTimer = null; }
   FOLDER_LABELS.forEach(folder => {
     ensureFolderBar(folder);
     const fill  = $(`bar-fill-${folder}`);
@@ -114,10 +119,20 @@ function updateFolderBar(folder, packaged, total) {
  * Toggles the UI between idle and syncing states.
  * @param {boolean} active
  */
+/** @type {boolean} */
+let syncPaused = false;
+
+function setPauseLabel(paused) {
+  $('btn-pause').style.display  = paused ? 'none' : 'flex';
+  $('btn-resume').style.display = paused ? 'flex' : 'none';
+}
+
 function setSyncActive(active) {
   syncActive = active;
-  $('btn-sync-now').style.display = active ? 'none' : '';
-  $('btn-abort').style.display    = active ? '' : 'none';
+  syncPaused = false;
+  $('btn-sync-now').style.display      = active ? 'none' : '';
+  $('btn-sync-controls').style.display = active ? 'flex' : 'none';
+  setPauseLabel(false);
 }
 
 // ── IPC event handlers ────────────────────────────────────────────────────────
@@ -185,8 +200,9 @@ function onSyncProgress(evt) {
  */
 function onSyncComplete(result) {
   setSyncActive(false);
-  // After a brief delay, fade bars back to idle grey so they're ready for next sync
-  setTimeout(() => {
+  // After a brief delay, fade bars to grey — cancelled if a new sync starts before it fires
+  _barFadeTimer = setTimeout(() => {
+    _barFadeTimer = null;
     FOLDER_LABELS.forEach(folder => {
       const fill  = $(`bar-fill-${folder}`);
       const label = $(`bar-label-${folder}`);
@@ -237,6 +253,20 @@ async function initStatus() {
   // Pre-render folder bars so they're visible immediately at launch
   resetFolderBars();
 
+  // ── Wire up IPC listeners FIRST so no event is missed during async init ──
+
+  // IPC events — registered before any async work so no event is missed
+  window.api.on('sync:log',      (msg)  => appendLog(msg));
+  window.api.on('sync:progress', (evt)  => onSyncProgress(evt));
+  window.api.on('sync:complete', (res)  => onSyncComplete(res));
+  window.api.on('sync:error',    (data) => onSyncError(data));
+  // Main confirms sync actually started (after connectivity check passed)
+  window.api.on('sync:started', () => { if (!syncActive) { resetFolderBars(); setSyncActive(true); } });
+  // Main pushes running state after did-finish-load (for window opened mid-sync)
+  window.api.on('sync:state', ({ running }) => {
+    if (running && !syncActive) setSyncActive(true);
+  });
+
   // Load persisted last-sync (survives history clears)
   try {
     const appState = await window.api.getAppState();
@@ -246,13 +276,29 @@ async function initStatus() {
     }
   } catch { /* first run */ }
 
+  // ── Button listeners ─────────────────────────────────────────────────────
+
   // Sync Now button
   $('btn-sync-now').addEventListener('click', async () => {
     if (syncActive) return;
-    resetFolderBars();
-    setSyncActive(true);
     appendLog('Starting sync...');
     await window.api.syncNow();
+  });
+
+  // Pause button
+  $('btn-pause').addEventListener('click', () => {
+    syncPaused = true;
+    window.api.pauseSync();
+    setPauseLabel(true);
+    appendLog('Sync paused.');
+  });
+
+  // Resume button
+  $('btn-resume').addEventListener('click', () => {
+    syncPaused = false;
+    window.api.resumeSync();
+    setPauseLabel(false);
+    appendLog('Sync resumed.');
   });
 
   // Abort button
@@ -289,12 +335,6 @@ async function initStatus() {
       .then(() => showToast('Log copied to clipboard'))
       .catch(() => {});
   });
-
-  // IPC events
-  window.api.on('sync:log',      (msg)  => appendLog(msg));
-  window.api.on('sync:progress', (evt)  => onSyncProgress(evt));
-  window.api.on('sync:complete', (res)  => onSyncComplete(res));
-  window.api.on('sync:error',    (data) => onSyncError(data));
 
   // Connectivity polling
   checkConnectivity();

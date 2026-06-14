@@ -66,6 +66,11 @@ function createWindow() {
 
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
 
+  // Push the current sync state once the renderer is fully ready
+  win.webContents.on('did-finish-load', () => {
+    sendToRenderer('sync:state', { running: syncRunning });
+  });
+
   win.on('closed', () => {
     win = null;
   });
@@ -81,11 +86,23 @@ function sendToRenderer(channel, payload) {
 
 async function runSync() {
   if (syncRunning) return { error: 'Sync already running' };
-  syncRunning = true;
-  log.info('Sync started');
 
   const cfg = loadConfig();
   const SyncEngine = require('./sync/syncEngine');
+
+  // Don't enter running state if the tablet is offline — keeps the UI in idle
+  const checkEng = new SyncEngine({ tabletUrl: cfg.tabletUrl, outputDir: cfg.outputDir });
+  const online = await checkEng.checkConnectivity().catch(() => false);
+  if (!online) {
+    log.info('Sync skipped — tablet unreachable');
+    sendToRenderer('sync:log', 'Tablet unreachable — sync skipped');
+    return { error: 'Tablet unreachable' };
+  }
+
+  syncRunning = true;
+  refreshTrayMenu();
+  log.info('Sync started');
+  sendToRenderer('sync:started');
 
   currentEngine = new SyncEngine({
     tabletUrl:   cfg.tabletUrl,
@@ -121,6 +138,7 @@ async function runSync() {
   } finally {
     syncRunning = false;
     currentEngine = null;
+    refreshTrayMenu();
   }
 }
 
@@ -144,11 +162,23 @@ ipcMain.handle('history:clear', () => {
 });
 
 ipcMain.handle('appstate:get', () => getLastSync());
+ipcMain.handle('app:version', () => app.getVersion());
 
-ipcMain.handle('sync:now', () => runSync());
+ipcMain.handle('sync:now',    () => runSync());
+ipcMain.handle('sync:status', () => syncRunning);
 
 ipcMain.handle('sync:abort', () => {
   if (currentEngine) currentEngine.abort();
+  return true;
+});
+
+ipcMain.handle('sync:pause', () => {
+  if (currentEngine) currentEngine.pause();
+  return true;
+});
+
+ipcMain.handle('sync:resume', () => {
+  if (currentEngine) currentEngine.resume();
   return true;
 });
 
@@ -199,10 +229,16 @@ if (!app.isPackaged) {
 function buildTrayMenu() {
   return Menu.buildFromTemplate([
     { label: 'Open AIPaper Sync', click: () => createWindow() },
-    { label: 'Sync Now', click: () => runSync() },
+    syncRunning
+      ? { label: 'Pause Sync', click: () => { if (currentEngine) currentEngine.pause(); } }
+      : { label: 'Sync Now',   click: () => runSync() },
     { type: 'separator' },
     { label: 'Quit', click: () => app.quit() },
   ]);
+}
+
+function refreshTrayMenu() {
+  if (tray) tray.setContextMenu(buildTrayMenu());
 }
 
 function createTray() {

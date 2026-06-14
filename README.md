@@ -10,6 +10,8 @@ AIPaper Sync is a small Windows program that automatically retrieves the content
 - It connects to your tablet **over your local Wi-Fi network** — no data ever leaves your home or office network.
 - It copies all your notebooks (Paper, Daily, Meeting, Learning, Picking, Memo) into a folder of your choice on your PC.
 - If a file already exists, it is **replaced with the latest version** from the tablet.
+- **Incremental sync** — unchanged files are detected using the tablet's own timestamps. If nothing has changed in a notebook since the last sync, the download is skipped entirely, saving time and bandwidth.
+- If you manually delete local files, the next sync automatically re-downloads them even if the tablet reports no changes.
 - It keeps a history of every file copied or replaced.
 
 ---
@@ -69,7 +71,7 @@ Right-clicking the icon shows a quick menu:
 - **Sync Now** — starts a sync immediately without opening the window
 - **Quit** — closes the program completely
 
-Clicking the **X** to close the window **does not quit the program** — it keeps running in the tray.
+Clicking the **X** to close the window keeps the program running in the tray by default. You can change this behaviour in Settings → Close button behavior.
 
 ---
 
@@ -79,12 +81,12 @@ Clicking the **X** to close the window **does not quit the program** — it keep
 
 | Item | Description |
 |---|---|
-| **Last sync** | Date and time of the most recent sync |
-| **Result** | Number of files copied, or an error message |
+| **Last sync** | Date and time of the most recent sync — persisted across restarts, even if you clear the history |
+| **Result** | Files created/overwritten, or an error message |
 | **Tablet** | Shows whether the tablet is reachable on the network |
 | **Sync Now** | Starts an immediate sync |
-| **Progress bars** | Shown during sync — one bar per notebook |
-| **Log** | Live activity log (can be cleared) |
+| **Progress bars** | One bar per notebook, always visible — grey at rest, animated during sync |
+| **Log** | Collapsible activity log — click the Log header to open/close it |
 
 ### History tab — sync record
 
@@ -94,19 +96,23 @@ Lists every file copied from the tablet, showing:
 - the full path of the file on your PC
 - whether the file was **created** for the first time or **overwritten** with a newer version
 
-The **Clear History** button wipes this list — it does not delete any files from your PC.
+Long history lists are paginated (50 rows per page) with Prev / Next buttons.
+
+The **Clear History** button wipes this list — it does not delete any files from your PC, and does not reset the "Last sync" display.
 
 ### Settings tab — configuration
 
-| Setting | Default value | Description |
+Settings are saved automatically as soon as you change any field — no Save button needed.
+
+| Setting | Default | Description |
 |---|---|---|
 | **Tablet URL** | `http://192.168.0.69:8090` | Network address of your tablet. Change this if your tablet has a different IP address. |
 | **Output Folder** | `%USERPROFILE%\Downloads` | The folder on your PC where synced files will be saved. |
-| **Note Format** | PDF | Export format for your notebooks: **PDF** (opens anywhere) or **Note** (tablet's native format). |
+| **Note Format** | PDF | Export format: **PDF** (opens anywhere) or **Note** (tablet's native format). |
 | **Sync on Startup** | On | Automatically runs a sync each time the program launches. |
+| **Incremental Sync** | On | Skips notebooks that haven't changed since the last sync — faster and uses less bandwidth. Recommended. |
 | **Start with Windows** | On | Launches the program automatically when you start your PC. Visible in Task Manager → Startup apps. |
-
-Click **Save Settings** after making any changes.
+| **Close button behavior** | Minimize to tray | What happens when you click ✕: keep running in the tray, or quit the app entirely. |
 
 ---
 
@@ -118,9 +124,10 @@ The program also stores its own data in its installation folder:
 
 ```
 data\
-├── config.json     ← your saved settings
-├── history.json    ← sync history records
-└── app.log         ← activity and error log (see Troubleshooting)
+├── config.json      ← your saved settings
+├── history.json     ← sync history records
+├── syncstate.json   ← per-notebook sync timestamps and last-sync summary
+└── app.log          ← activity and error log (see Troubleshooting)
 ```
 
 ---
@@ -132,6 +139,16 @@ data\
 - Make sure the tablet and PC are on the same Wi-Fi network.
 - Make sure the tablet is turned on and unlocked.
 - Check Settings → Tablet URL: the IP address must match the one shown in the tablet's Wi-Fi settings.
+- Note: the connectivity check may briefly show "Unreachable" while the tablet wakes up, even if a sync can still proceed.
+
+### A notebook is always re-downloaded even though nothing changed
+
+- This was a known issue with certain notebooks (Meeting, Picking) where the tablet reports folder timestamps as 0. It is now fixed — those notebooks are detected correctly using file-level timestamps.
+- If you see this after updating, delete `data\syncstate.json` once to reset the stored timestamps, then run a sync. The correct values will be saved and skipping will work from the next sync onward.
+
+### I deleted local files and the sync says "No changes"
+
+This should no longer happen. The app now checks whether local files exist before deciding to skip a notebook. If the output folder for a notebook is missing or empty, the files are re-downloaded automatically.
 
 ### A sync fails or stops midway
 
