@@ -1,1 +1,914 @@
-[]
+[
+  {
+    "date": "2026-06-14T10:11:22.110Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\note\\A Dire.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:22.112Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\pdf\\A Dire.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.178Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Test.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.182Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Test.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.182Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Extrait 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.183Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Extrait 1.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.188Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\note\\Learning 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.197Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\png\\Learning 1.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.204Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\note\\test KO reader 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.222Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\png\\test KO reader 1.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.230Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallpaper 2.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.244Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallpaper 2.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.245Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallapper.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:11:27.248Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallapper.jpg",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:32.428Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\note\\A Dire.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:32.430Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\pdf\\A Dire.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:21.043Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\note\\A Dire.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:21.045Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\pdf\\A Dire.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.506Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Test.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.510Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Test.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.511Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Extrait 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.511Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Extrait 1.pdf",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.517Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\note\\Learning 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.525Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\png\\Learning 1.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.532Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\note\\test KO reader 1.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.543Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\png\\test KO reader 1.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.551Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallpaper 2.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.566Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallpaper 2.png",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.567Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallapper.note",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:07:26.568Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallapper.jpg",
+    "action": "Overwritten"
+  },
+  {
+    "date": "2026-06-14T10:04:24.981Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\PDF Template\\note\\Plan mensuel.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.009Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\PDF Template\\pdf\\Plan mensuel.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.014Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\PDF Template\\note\\Plan hebdomadaire.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.018Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\PDF Template\\pdf\\Plan hebdomadaire.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.020Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\work\\note\\AWS NEP.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.025Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\work\\pdf\\AWS NEP.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.028Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Spiritualité\\note\\Codes  numéros.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.032Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Spiritualité\\pdf\\Codes  numéros.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.035Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Writing\\note\\cart infos.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.040Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Writing\\pdf\\cart infos.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.043Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Writing\\note\\- Retours Conference.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.048Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Writing\\pdf\\- Retours Conference.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.050Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Sketching\\note\\K-Sketching 3.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.054Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Sketching\\pdf\\K-Sketching 3.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.059Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Sketching\\note\\our house someday.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.065Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Sketching\\pdf\\our house someday.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.068Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Thinking\\note\\K-Thinking 2.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.075Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\Thinking\\pdf\\K-Thinking 2.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.079Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\note\\Cosy House.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.094Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\pdf\\Cosy House.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.100Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\note\\STAR WARS.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:25.103Z",
+    "folder": "Paper",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Paper\\pdf\\STAR WARS.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.153Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_13.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.155Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_13.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.156Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_12.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.157Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_12.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.158Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_15.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.160Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_15.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.160Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_18.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.161Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_18.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.162Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_22.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.162Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_22.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.163Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_16.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.164Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_16.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.165Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_11.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.167Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_11.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.167Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_8_27.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.168Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_8_27.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.169Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_10.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.170Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_10.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.172Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_9.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.173Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_9.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.175Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_9_25.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.177Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_9_25.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.178Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_24.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.179Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_24.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.180Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_8.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.182Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_8.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.183Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_6.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.184Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_6.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.185Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_19.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.187Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_19.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.187Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_26.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.188Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_26.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.189Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_5.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.190Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_5.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.190Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_4.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.191Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_4.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.192Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_6_2.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.194Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_6_2.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.194Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_8_20.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.195Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_8_20.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.197Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_7_28.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.198Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_7_28.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.198Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_7_20.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.199Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_7_20.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.199Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_5_28.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.200Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_5_28.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.200Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\note\\day_2026_5_26.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:29.201Z",
+    "folder": "Daily",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Daily\\pdf\\day_2026_5_26.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:32.585Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\note\\A Dire.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:04:32.587Z",
+    "folder": "Meeting",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Meeting\\Meetings\\pdf\\A Dire.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.625Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\N44 optimized ocr.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.746Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\N44 optimized ocr.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.763Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\N44 optimized ocr-1.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.870Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\N44 optimized ocr-1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.886Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\N44 optimized ocr-2.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:51.992Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\N44 optimized ocr-2.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.005Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\test notes.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.014Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\test notes.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.018Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\test notes-1.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.026Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\test notes-1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.040Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\ivoi_les_voleurs_de_foudre.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.049Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\ivoi_les_voleurs_de_foudre.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.075Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\2.2_N44_RULES_2021_FINAL.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.149Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\2.2_N44_RULES_2021_FINAL.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.178Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\pdf\\2.2_N44_RULES_2021_FINAL-1.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.269Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\Reading Notes\\note\\2.2_N44_RULES_2021_FINAL-1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.438Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\N44 optimized ocr.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.451Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\test notes.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.454Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\ivoi_les_voleurs_de_foudre.epub",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:52.527Z",
+    "folder": "Learning",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Learning\\2.2_N44_RULES_2021_FINAL.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.187Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Test.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.191Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Test.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.191Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\note\\Extrait 1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.192Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\PickNotes\\pdf\\Extrait 1.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.198Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\note\\Learning 1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.206Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\Learning\\png\\Learning 1.png",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.213Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\note\\test KO reader 1.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.223Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\test KO reader\\png\\test KO reader 1.png",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.232Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallpaper 2.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.246Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallpaper 2.png",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.247Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\note\\wallapper.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:57.248Z",
+    "folder": "Picking",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Picking\\VisualNotes\\png\\wallapper.jpg",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.921Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\Tableau blanc.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.923Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\Tableau blanc.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.924Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\STAR WARS.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.924Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\STAR WARS.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.926Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\Dire à Cousin.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.927Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\Dire à Cousin.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.928Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\Fitness.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.928Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\Fitness.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.929Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\buffer temp.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.929Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\buffer temp.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.931Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\Déclaration impôts.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.933Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\Déclaration impôts.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.934Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\Invest.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.935Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\Invest.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.935Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\astral.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.936Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\astral.pdf",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.938Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\note\\surfaces sol carrelage.note",
+    "action": "Created"
+  },
+  {
+    "date": "2026-06-14T10:06:59.939Z",
+    "folder": "Memo",
+    "filePath": "E:\\Téléchargements\\tmp\\aipaper\\Memo\\pdf\\surfaces sol carrelage.pdf",
+    "action": "Created"
+  }
+]

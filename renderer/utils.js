@@ -2,9 +2,7 @@
 
 /**
  * Returns the DOM element with the given id.
- * Thin wrapper around `document.getElementById` to reduce boilerplate.
- *
- * @param {string} id - The element id to look up.
+ * @param {string} id
  * @returns {HTMLElement | null}
  */
 function $(id) {
@@ -12,12 +10,10 @@ function $(id) {
 }
 
 /**
- * Formats an ISO 8601 date string into the locale-aware short date-time
- * format understood by the current system locale.
+ * Formats an ISO 8601 date string into the locale-aware short date-time format.
  * Falls back to the raw string if parsing fails.
- *
- * @param {string} iso - ISO 8601 date string (e.g. "2024-06-13T14:22:00.000Z").
- * @returns {string} Human-readable date/time string.
+ * @param {string} iso
+ * @returns {string}
  */
 function formatDate(iso) {
   try {
@@ -25,4 +21,22 @@ function formatDate(iso) {
   } catch {
     return iso;
   }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+/** @type {ReturnType<typeof setTimeout> | null} */
+let _toastTimer = null;
+
+/**
+ * Shows a brief toast notification in the bottom-right corner.
+ * Safe to call repeatedly — each call resets the hide timer.
+ * @param {string} msg
+ */
+function showToast(msg) {
+  const toast = $('save-toast');
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => toast.classList.remove('visible'), 2000);
 }

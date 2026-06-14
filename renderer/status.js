@@ -76,8 +76,8 @@ function ensureFolderBar(folder) {
 }
 
 /**
- * Updates the fill width and text label of the progress bar for `folder`.
- * When `total` is 0 the bar is set to 0 % and labelled "Empty".
+ * Updates the fill width and text label of the packaging progress bar.
+ * When `total` is 0 the bar stays at 0 % and is labelled "Empty".
  *
  * @param {string} folder   - Folder display name.
  * @param {number} packaged - Number of files packaged so far.
@@ -89,8 +89,8 @@ function updateFolderBar(folder, packaged, total) {
   const label = $(`bar-label-${folder}`);
   if (total > 0) {
     const pct = Math.min(100, Math.round((packaged / total) * 100));
-    fill.style.width   = `${pct}%`;
-    label.textContent  = `${packaged} / ${total}`;
+    fill.style.width  = `${pct}%`;
+    label.textContent = `Packaging ${packaged}/${total}`;
   } else {
     fill.style.width  = '0%';
     label.textContent = 'Empty';
@@ -125,26 +125,59 @@ function setSyncActive(active) {
 
 /**
  * Handles granular progress events emitted by syncEngine:
- * - `packaging` → update the folder's progress bar.
- * - `folder-done` → fill bar to 100 %.
- * - `download` → show download percentage in the bar label.
+ * - `packaging`      → fill bar by packaged/total count.
+ * - `download-start` → reset bar to 0 % before bytes arrive.
+ * - `download`       → fill bar by bytes received/total.
+ * - `folder-done`    → fill bar to 100 %.
+ * - `folder-error`   → mark bar label as failed.
  *
  * @param {{ type: string, folder: string, packaged?: number, total?: number,
- *           received?: number, created?: number, overwritten?: number }} evt
+ *           received?: number, created?: number, overwritten?: number,
+ *           skipped?: number, error?: string }} evt
  */
 function onSyncProgress(evt) {
-  if (evt.type === 'packaging') {
-    updateFolderBar(evt.folder, evt.packaged, evt.total);
+  if (evt.type === 'folder-start') {
+    ensureFolderBar(evt.folder);
   }
-  if (evt.type === 'folder-done') {
-    updateFolderBar(evt.folder, evt.created + evt.overwritten, evt.created + evt.overwritten);
-    const fill = $(`bar-fill-${evt.folder}`);
-    if (fill) fill.style.width = '100%';
+  if (evt.type === 'folder-skipped') {
+    ensureFolderBar(evt.folder);
+    const fill  = $(`bar-fill-${evt.folder}`);
+    const label = $(`bar-label-${evt.folder}`);
+    if (fill)  fill.style.width  = '100%';
+    if (label) { label.textContent = 'No changes'; label.style.color = 'var(--text-muted)'; }
+  }
+  if (evt.type === 'packaging') {
+    updateFolderBar(evt.folder, evt.packaged, evt.total, 'pkg');
+  }
+  if (evt.type === 'download-start') {
+    // Reset bar to 0 so it visually shows download progress from scratch
+    const fill  = $(`bar-fill-${evt.folder}`);
+    const label = $(`bar-label-${evt.folder}`);
+    if (fill)  fill.style.width   = '0%';
+    if (label) label.textContent  = 'Downloading…';
   }
   if (evt.type === 'download') {
     const pct   = evt.total > 0 ? Math.round((evt.received / evt.total) * 100) : 0;
+    const fill  = $(`bar-fill-${evt.folder}`);
     const label = $(`bar-label-${evt.folder}`);
-    if (label) label.textContent = `Downloading ${pct}%`;
+    if (fill)  fill.style.width   = `${pct}%`;
+    if (label) label.textContent  = `Downloading ${pct}%`;
+  }
+  if (evt.type === 'folder-done') {
+    const fill  = $(`bar-fill-${evt.folder}`);
+    const label = $(`bar-label-${evt.folder}`);
+    if (fill)  fill.style.width   = '100%';
+    if (label) {
+      const parts = [];
+      if (evt.created)    parts.push(`${evt.created} new`);
+      if (evt.overwritten) parts.push(`${evt.overwritten} updated`);
+      if (evt.skipped)    parts.push(`${evt.skipped} unchanged`);
+      label.textContent = parts.length ? parts.join(', ') : 'Done';
+    }
+  }
+  if (evt.type === 'folder-error') {
+    const label = $(`bar-label-${evt.folder}`);
+    if (label) { label.textContent = 'Error'; label.style.color = 'var(--error)'; }
   }
 }
 
@@ -217,6 +250,16 @@ function initStatus(onTabSwitch) {
   // Clear log button
   $('btn-clear-log').addEventListener('click', () => {
     $('log-box').innerHTML = '';
+  });
+
+  // Copy log to clipboard
+  $('btn-copy-log').addEventListener('click', () => {
+    const lines = Array.from($('log-box').querySelectorAll('.log-line'))
+      .map(el => el.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines)
+      .then(() => showToast('Log copied to clipboard'))
+      .catch(() => {});
   });
 
   // IPC events

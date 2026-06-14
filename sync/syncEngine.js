@@ -1,9 +1,10 @@
 'use strict';
 
-const fs  = require('fs');
+const fs   = require('fs');
 const path = require('path');
 const AdmZip = require('adm-zip');
 const log  = require('../main/logger');
+const { loadSyncState, saveSyncState } = require('../main/syncstate');
 
 const APP_TYPES = [
   { appType: 'APP_PAPER',    label: 'Paper' },
@@ -14,36 +15,32 @@ const APP_TYPES = [
   { appType: 'APP_MEMO',     label: 'Memo' },
 ];
 
-const POLL_INTERVAL_MS = 2000;
+const POLL_INTERVAL_MS       = 2000;
 const EMPTY_FOLDER_THRESHOLD = 3;
+const DOWNLOAD_SPEED_BPS     = 1 * 1024 * 1024; // 1 MB/s conservative
+const DOWNLOAD_TIMEOUT_MIN   = 60_000;
+const DOWNLOAD_TIMEOUT_MAX   = 20 * 60_000;
 
 class SyncEngine {
-  constructor({ tabletUrl, outputDir, noteFormat, onProgress, onLog }) {
-    this.tabletUrl = tabletUrl.replace(/\/$/, '');
-    this.outputDir = outputDir;
-    this.noteFormat = noteFormat || 'pdf';
-    this.onProgress = onProgress || (() => {});
-    this.onLog = onLog || (() => {});
-    this.aborted = false;
-    this.newHistory = [];
+  constructor({ tabletUrl, outputDir, noteFormat, incremental, onProgress, onLog }) {
+    this.tabletUrl   = tabletUrl.replace(/\/$/, '');
+    this.outputDir   = outputDir;
+    this.noteFormat  = noteFormat  || 'pdf';
+    this.incremental = incremental !== false;
+    this.onProgress  = onProgress  || (() => {});
+    this.onLog       = onLog       || (() => {});
+    this.aborted     = false;
+    this.newHistory  = [];
+    this.syncState   = loadSyncState();
   }
 
-  abort() {
-    this.aborted = true;
-  }
+  abort() { this.aborted = true; }
 
-  /**
-   * Forwards `msg` to both the file logger and the UI log callback.
-   * @param {string} msg
-   */
-  log(msg) {
-    log.info(msg);
-    this.onLog(msg);
-  }
+  /** @param {string} msg */
+  log(msg) { log.info(msg); this.onLog(msg); }
 
   /**
-   * Logs an error to the file logger and forwards a plain-text version to the UI.
-   * @param {string} context - Label prefix (e.g. folder name).
+   * @param {string} context
    * @param {Error}  err
    */
   logError(context, err) {
@@ -51,28 +48,68 @@ class SyncEngine {
     this.onLog(`[${context}] ERROR: ${err.message}`);
   }
 
+  /**
+   * GET request to the tablet API with a 30-second timeout.
+   * @param {string} endpoint
+   */
   async get(endpoint) {
-    const url = `${this.tabletUrl}${endpoint}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    const res = await fetch(`${this.tabletUrl}${endpoint}`, { signal: AbortSignal.timeout(30000) });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${endpoint}`);
     return res.json();
   }
 
+  /** @returns {Promise<boolean>} */
   async checkConnectivity() {
     try {
-      const res = await fetch(`${this.tabletUrl}/getChildFolderList?appType=root&folderId=&folderName=Home&language=en`, {
-        signal: AbortSignal.timeout(5000),
-      });
+      const res = await fetch(
+        `${this.tabletUrl}/getChildFolderList?appType=root&folderId=&folderName=Home&language=en`,
+        { signal: AbortSignal.timeout(5000) }
+      );
       return res.ok;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   }
 
+  /**
+   * Recursively walks the tablet folder tree and returns the maximum
+   * `updateTime` (ms) found across all files and subfolders.
+   * Uses the `updateTime` on folders as a shortcut — if a folder's
+   * `updateTime` is not newer than `lastSyncMs`, its subtree is pruned.
+   *
+   * @param {string} appType
+   * @param {string} folderId   - `noteId` of the folder, or '' for root.
+   * @param {string} folderName - Display name of the folder.
+   * @param {number} lastSyncMs - Timestamp of the last successful sync.
+   * @returns {Promise<number>} Maximum updateTime found (0 if none).
+   */
+  async getMaxUpdateTime(appType, folderId, folderName, lastSyncMs) {
+    const data  = await this.get(
+      `/getChildFolderList?appType=${appType}&folderId=${encodeURIComponent(folderId)}&folderName=${encodeURIComponent(folderName)}&language=en`
+    );
+    const items = data.data || [];
+    let maxTime = 0;
+
+    for (const item of items) {
+      if (item.updateTime > maxTime) maxTime = item.updateTime;
+
+      // Recurse into non-empty subfolders only if their own updateTime is
+      // newer than the last sync (avoids redundant deep walks).
+      if (item.isFolder && !item.isEmptyFolder && item.updateTime > lastSyncMs) {
+        const subMax = await this.getMaxUpdateTime(appType, item.noteId, item.fileName, lastSyncMs);
+        if (subMax > maxTime) maxTime = subMax;
+      }
+    }
+
+    return maxTime;
+  }
+
+  /**
+   * Full sync over all 6 tablet folders.
+   * @returns {Promise<{total, created, overwritten, skipped, errors, history}>}
+   */
   async run() {
-    this.aborted = false;
+    this.aborted    = false;
     this.newHistory = [];
-    const results = { total: 0, created: 0, overwritten: 0, errors: [] };
+    const results   = { total: 0, created: 0, overwritten: 0, skipped: 0, errors: [] };
 
     for (let i = 0; i < APP_TYPES.length; i++) {
       if (this.aborted) break;
@@ -82,13 +119,18 @@ class SyncEngine {
         this.log(`[${label}] Starting...`);
         this.onProgress({ type: 'folder-start', folder: label, folderIndex: i, folderTotal: APP_TYPES.length });
 
-        const folderResult = await this.syncFolder(appType, label);
-        results.created += folderResult.created;
-        results.overwritten += folderResult.overwritten;
-        results.total += folderResult.created + folderResult.overwritten;
+        const r = await this.syncFolder(appType, label);
+        results.created     += r.created;
+        results.overwritten += r.overwritten;
+        results.skipped     += r.skipped;
+        results.total       += r.created + r.overwritten;
 
-        this.onProgress({ type: 'folder-done', folder: label, ...folderResult });
-        this.log(`[${label}] Done — ${folderResult.created} created, ${folderResult.overwritten} overwritten`);
+        this.onProgress({ type: 'folder-done', folder: label, ...r });
+        if (r.entirelySkipped) {
+          this.log(`[${label}] Skipped — nothing changed since last sync`);
+        } else {
+          this.log(`[${label}] Done — ${r.created} created, ${r.overwritten} overwritten, ${r.skipped} unchanged`);
+        }
       } catch (err) {
         this.logError(label, err);
         results.errors.push({ folder: label, error: err.message });
@@ -99,71 +141,86 @@ class SyncEngine {
     return { ...results, history: this.newHistory };
   }
 
+  /**
+   * Syncs one folder end-to-end. When incremental mode is on and the tablet
+   * reports no `updateTime` newer than the last sync, the ZIP download is
+   * skipped entirely — saving bandwidth and time.
+   *
+   * @param {string} appType
+   * @param {string} label
+   */
   async syncFolder(appType, label) {
-    const childFileFormat = this.noteFormat === 'pdf' ? 'pdf' : 'note';
+    const lastSyncMs = this.syncState[appType] || 0;
+
+    // ── Incremental check: skip download if nothing changed ────────────────
+    if (this.incremental && lastSyncMs > 0) {
+      this.log(`[${label}] Checking for changes...`);
+      const maxUpdateTime = await this.getMaxUpdateTime(appType, '', label, lastSyncMs);
+
+      if (maxUpdateTime > 0 && maxUpdateTime <= lastSyncMs) {
+        this.onProgress({ type: 'folder-skipped', folder: label });
+        return { created: 0, overwritten: 0, skipped: 0, entirelySkipped: true };
+      }
+    }
+
     const fileName = `${label}.zip`;
 
-    // Step 1: trigger packaging
+    // 1. Trigger packaging
     this.log(`[${label}] Packaging...`);
     const pkgData = await this.get(
-      `/packageFile?appType=${appType}&fileName=${encodeURIComponent(fileName)}&isFolder=true&fileUrl=&folderId=&fileFormat=zip&childFileFormat=${childFileFormat}`
+      `/packageFile?appType=${appType}&fileName=${encodeURIComponent(fileName)}&isFolder=true&fileFormat=zip`
     );
-
-    if (pkgData.code !== 200) {
-      throw new Error(`packageFile failed: code ${pkgData.code}`);
-    }
-
+    if (pkgData.code !== 200) throw new Error(`packageFile failed: code ${pkgData.code}`);
     const filePath = pkgData.data;
 
-    // Step 2: poll progress
+    // 2. Poll packaging progress
     this.log(`[${label}] Waiting for packaging to complete...`);
-    await this.pollProgress(appType, label, filePath);
+    await this.pollProgress(appType, label);
+    if (this.aborted) return { created: 0, overwritten: 0, skipped: 0 };
 
-    if (this.aborted) return { created: 0, overwritten: 0 };
-
-    // Step 3: verify ready
+    // 3. Verify ZIP is ready
     const checkData = await this.get(`/checkDownloadFile?filePath=${encodeURIComponent(filePath)}`);
     if (!checkData.data || !checkData.data.fileSize) {
-      throw new Error('checkDownloadFile returned no file size — ZIP may be empty');
+      throw new Error('checkDownloadFile: no fileSize — ZIP may be empty');
     }
-    this.log(`[${label}] ZIP ready (${Math.round(checkData.data.fileSize / 1024)} KB)`);
+    const fileSize = checkData.data.fileSize;
+    this.log(`[${label}] ZIP ready (${Math.round(fileSize / 1024)} KB)`);
 
-    // Step 4: download to temp
+    // 4. Download to temp on output drive (never C:)
     const tmpDir = path.join(this.outputDir, '.tmp');
     fs.mkdirSync(tmpDir, { recursive: true });
     const tmpZip = path.join(tmpDir, fileName);
 
-    await this.downloadFile(filePath, tmpZip, label);
+    await this.downloadFile(filePath, tmpZip, label, fileSize);
+    if (this.aborted) { this.deleteSafe(tmpZip); return { created: 0, overwritten: 0, skipped: 0 }; }
 
-    if (this.aborted) {
-      this.deleteSafe(tmpZip);
-      return { created: 0, overwritten: 0 };
-    }
+    // 5. Extract — skip individual unchanged files
+    const counts = await this.extractZip(tmpZip, label);
 
-    // Step 5: extract
-    const { created, overwritten } = await this.extractZip(tmpZip, label, appType);
-
-    // Step 6: cleanup
+    // 6. Cleanup
     this.deleteSafe(tmpZip);
 
-    return { created, overwritten };
+    // 7. Persist sync timestamp so next run can skip this folder if unchanged
+    this.syncState[appType] = Date.now();
+    saveSyncState(this.syncState);
+
+    return counts;
   }
 
-  async pollProgress(appType, label, fileUrl) {
+  /**
+   * Polls `/packageFolderProgress` until packaging is complete.
+   * @param {string} appType
+   * @param {string} label
+   */
+  async pollProgress(appType, label) {
     let emptyCount = 0;
-
     for (;;) {
       if (this.aborted) return;
-
       await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-
-      const data = await this.get(
-        `/packageFolderProgress?appType=${appType}&fileUrl=${encodeURIComponent(fileUrl)}`
-      );
-
+      const data     = await this.get(`/packageFolderProgress?appType=${appType}`);
       const progress = data.data || {};
       const packaged = progress.childCompleteCount ?? 0;
-      const total = progress.childTotal ?? 0;
+      const total    = progress.childTotal         ?? 0;
 
       this.onProgress({ type: 'packaging', folder: label, packaged, total });
 
@@ -175,23 +232,34 @@ class SyncEngine {
         }
         continue;
       }
-
       emptyCount = 0;
       this.log(`[${label}] Packaged ${packaged}/${total}`);
-
       if (packaged >= total) return;
     }
   }
 
-  async downloadFile(filePath, destPath, label) {
+  /**
+   * Streams the ZIP from the tablet to disk. Timeout scales with file size.
+   * Emits `download-start` before the first byte so the UI can reset its bar.
+   *
+   * @param {string} filePath
+   * @param {string} destPath
+   * @param {string} label
+   * @param {number} fileSize
+   */
+  async downloadFile(filePath, destPath, label, fileSize) {
     this.log(`[${label}] Downloading ZIP...`);
-    const url = `${this.tabletUrl}/download?filePath=${encodeURIComponent(filePath)}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(120000) });
+    const timeoutMs = Math.min(DOWNLOAD_TIMEOUT_MAX,
+      Math.max(DOWNLOAD_TIMEOUT_MIN, Math.ceil((fileSize / DOWNLOAD_SPEED_BPS) * 1000 * 3)));
 
+    const url = `${this.tabletUrl}/download?filePath=${encodeURIComponent(filePath)}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
     if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
 
-    const total = parseInt(res.headers.get('content-length') || '0', 10);
-    let received = 0;
+    const total    = parseInt(res.headers.get('content-length') || String(fileSize), 10);
+    let   received = 0;
+
+    this.onProgress({ type: 'download-start', folder: label });
 
     const writer = fs.createWriteStream(destPath);
     const reader = res.body.getReader();
@@ -204,60 +272,57 @@ class SyncEngine {
             if (done) break;
             writer.write(Buffer.from(value));
             received += value.length;
-            if (total > 0) {
-              this.onProgress({ type: 'download', folder: label, received, total });
-            }
+            this.onProgress({ type: 'download', folder: label, received, total });
           }
           writer.end();
           writer.on('finish', resolve);
           writer.on('error', reject);
-        } catch (err) {
-          writer.destroy();
-          reject(err);
-        }
+        } catch (err) { writer.destroy(); reject(err); }
       };
       pump();
     });
   }
 
-  async extractZip(zipPath, label, appType) {
+  /**
+   * Extracts the ZIP. When `incremental` is true, skips files whose local
+   * mtime is >= the ZIP entry's mtime (file unchanged since last sync).
+   *
+   * @param {string} zipPath
+   * @param {string} label
+   * @returns {Promise<{created, overwritten, skipped}>}
+   */
+  async extractZip(zipPath, label) {
     this.log(`[${label}] Extracting...`);
-    const zip = new AdmZip(zipPath);
-    const entries = zip.getEntries();
-    let created = 0;
-    let overwritten = 0;
+    const entries = new AdmZip(zipPath).getEntries();
+    let created = 0, overwritten = 0, skipped = 0;
 
     for (const entry of entries) {
       if (entry.isDirectory) continue;
-
-      const entryName = entry.entryName;
-      const destFile = path.join(this.outputDir, entryName);
-      const destDir = path.dirname(destFile);
-
-      fs.mkdirSync(destDir, { recursive: true });
+      const destFile = path.join(this.outputDir, entry.entryName);
+      fs.mkdirSync(path.dirname(destFile), { recursive: true });
 
       const existed = fs.existsSync(destFile);
+      if (existed && this.incremental) {
+        const localMtimeMs = fs.statSync(destFile).mtimeMs;
+        const entryTime    = entry.header.time;
+        const entryMs      = entryTime instanceof Date ? entryTime.getTime() : 0;
+        if (entryMs > 0 && localMtimeMs >= entryMs) { skipped++; continue; }
+      }
+
       const action = existed ? 'Overwritten' : 'Created';
-
       fs.writeFileSync(destFile, entry.getData());
-
       if (existed) overwritten++; else created++;
 
-      const record = {
-        date: new Date().toISOString(),
-        folder: label,
-        filePath: destFile,
-        action,
-      };
-      this.newHistory.push(record);
+      this.newHistory.push({
+        date: new Date().toISOString(), folder: label, filePath: destFile, action,
+      });
     }
 
-    return { created, overwritten };
+    return { created, overwritten, skipped };
   }
 
-  deleteSafe(filePath) {
-    try { fs.unlinkSync(filePath); } catch {}
-  }
+  /** @param {string} filePath */
+  deleteSafe(filePath) { try { fs.unlinkSync(filePath); } catch {} }
 }
 
 module.exports = SyncEngine;

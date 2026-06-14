@@ -43,6 +43,11 @@ function windowControl(action) {
 $('btn-minimize').addEventListener('click', () => windowControl('minimize'));
 $('btn-close').addEventListener('click',    () => windowControl('close'));
 
+// F12 → DevTools (only functional in dev mode — main ignores the IPC in packaged builds)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F12') window.api.openDevTools();
+});
+
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
 /**

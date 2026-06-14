@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, globalShortcut } = require('electron');
 const path = require('path');
 const { execSync } = require('child_process');
 
@@ -87,10 +87,11 @@ async function runSync() {
   const SyncEngine = require('./sync/syncEngine');
 
   currentEngine = new SyncEngine({
-    tabletUrl:  cfg.tabletUrl,
-    outputDir:  cfg.outputDir,
-    noteFormat: cfg.noteFormat,
-    onProgress: (evt) => sendToRenderer('sync:progress', evt),
+    tabletUrl:   cfg.tabletUrl,
+    outputDir:   cfg.outputDir,
+    noteFormat:  cfg.noteFormat,
+    incremental: cfg.incremental !== false,
+    onProgress:  (evt) => sendToRenderer('sync:progress', evt),
     onLog: (msg) => {
       log.info(msg);
       sendToRenderer('sync:log', msg);
@@ -153,6 +154,27 @@ ipcMain.handle('startup:set', (_e, enabled) => setStartup(enabled));
 // Window control IPC (frameless window)
 ipcMain.on('window:minimize', () => { if (win) win.minimize(); });
 ipcMain.on('window:close', () => { if (win) win.close(); });
+
+// DevTools — only available when running from source, never in a packaged build
+if (!app.isPackaged) {
+  ipcMain.on('devtools:toggle', () => {
+    if (!win || win.isDestroyed()) return;
+    win.webContents.isDevToolsOpened()
+      ? win.webContents.closeDevTools()
+      : win.webContents.openDevTools({ mode: 'detach' });
+  });
+
+  app.whenReady().then(() => {
+    globalShortcut.register('F12', () => {
+      if (!win || win.isDestroyed()) return;
+      win.webContents.isDevToolsOpened()
+        ? win.webContents.closeDevTools()
+        : win.webContents.openDevTools({ mode: 'detach' });
+    });
+  });
+
+  app.on('will-quit', () => globalShortcut.unregisterAll());
+}
 
 // ── Tray ─────────────────────────────────────────────────────────────────────
 

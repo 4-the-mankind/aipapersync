@@ -1,40 +1,64 @@
 'use strict';
 
 // ── History tab ───────────────────────────────────────────────────────────────
-// Owns: fetching, rendering, and clearing the sync history table.
+// Owns: fetching, rendering, paginating, and clearing the sync history table.
+
+const PAGE_SIZE = 50;
+
+/** @type {Array} Full history array, newest-first. */
+let _history = [];
+
+/** @type {number} Current page index (0-based). */
+let _page = 0;
 
 /**
- * Fetches sync history from the main process and renders it into the history
- * table. Shows the empty-state placeholder when there are no records.
- *
+ * Fetches sync history from the main process, stores it, and renders page 0.
  * @returns {Promise<void>}
  */
 async function loadHistory() {
-  const history = await window.api.getHistory();
-  const tbody   = $('history-body');
-  const empty   = $('history-empty');
+  _history = (await window.api.getHistory()) || [];
+  _history = _history.slice().reverse(); // newest first
+  _page = 0;
+  renderPage();
+}
+
+/**
+ * Renders the current page into the table and updates pagination controls.
+ */
+function renderPage() {
+  const tbody = $('history-body');
+  const empty = $('history-empty');
   tbody.innerHTML = '';
 
-  if (!history || history.length === 0) {
+  if (_history.length === 0) {
     empty.classList.add('visible');
+    $('history-pagination').style.display = 'none';
     return;
   }
   empty.classList.remove('visible');
 
-  history.forEach(entry => renderHistoryRow(tbody, entry));
+  const totalPages = Math.ceil(_history.length / PAGE_SIZE);
+  const start      = _page * PAGE_SIZE;
+  const slice      = _history.slice(start, start + PAGE_SIZE);
+
+  slice.forEach(entry => renderHistoryRow(tbody, entry));
+
+  // Pagination controls
+  const pager = $('history-pagination');
+  pager.style.display = totalPages > 1 ? 'flex' : 'none';
+  $('page-info').textContent  = `Page ${_page + 1} / ${totalPages}`;
+  $('btn-page-prev').disabled = _page === 0;
+  $('btn-page-next').disabled = _page >= totalPages - 1;
 }
 
 /**
  * Creates and appends a `<tr>` for a single history entry.
- *
- * @param {HTMLTableSectionElement} tbody - The `<tbody>` to append the row to.
+ * @param {HTMLTableSectionElement} tbody
  * @param {{ date: string, folder: string, filePath: string, action: 'Overwritten'|'Created' }} entry
  */
 function renderHistoryRow(tbody, entry) {
   const tr         = document.createElement('tr');
   const badgeClass = entry.action === 'Overwritten' ? 'badge-overwritten' : 'badge-created';
-
-  // Escape user-supplied text before setting as innerHTML to avoid XSS.
   const safePath   = escapeHtml(entry.filePath);
   const safeFolder = escapeHtml(entry.folder);
 
@@ -47,11 +71,9 @@ function renderHistoryRow(tbody, entry) {
 }
 
 /**
- * Escapes HTML special characters in a string to prevent injection when
- * values are inserted via `innerHTML`.
- *
- * @param {string} str - Raw string that may contain HTML characters.
- * @returns {string} Escaped string safe for HTML attribute and text content.
+ * Escapes HTML special characters in a string.
+ * @param {string} str
+ * @returns {string}
  */
 function escapeHtml(str) {
   return String(str)
@@ -65,13 +87,19 @@ function escapeHtml(str) {
 
 /**
  * Wires up History-tab event listeners. Called once by `renderer.js`.
- * `loadHistory` is also exported so the tab-switching logic can call it
- * whenever the History tab becomes active.
  */
 function initHistory() {
   $('btn-clear-history').addEventListener('click', async () => {
     if (!confirm('Clear all sync history?')) return;
     await window.api.clearHistory();
     await loadHistory();
+  });
+
+  $('btn-page-prev').addEventListener('click', () => {
+    if (_page > 0) { _page--; renderPage(); }
+  });
+
+  $('btn-page-next').addEventListener('click', () => {
+    if (_page < Math.ceil(_history.length / PAGE_SIZE) - 1) { _page++; renderPage(); }
   });
 }

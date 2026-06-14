@@ -4,12 +4,53 @@
   "description": "Viewood AIPaper tablet sync — Windows tray application",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder --win"
   },
   "dependencies": {
     "adm-zip": "^0.5.16"
   },
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.aipapersync.app",
+    "productName": "AIPaper Sync",
+    "copyright": "Viewood AIPaper Sync",
+    "files": [
+      "main.js",
+      "preload.js",
+      "main/**/*",
+      "sync/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "data/config.json",
+      "data/history.json"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.png",
+      "uninstallerIcon": "assets/icon.png",
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AIPaper Sync"
+    },
+    "directories": {
+      "output": "dist"
+    }
   }
 }

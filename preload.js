@@ -24,6 +24,9 @@ contextBridge.exposeInMainWorld('api', {
   // Frameless window controls
   windowControl: (action) => ipcRenderer.send(`window:${action}`),
 
+  // DevTools toggle — the IPC handler only exists in dev (not in packaged builds)
+  openDevTools: () => ipcRenderer.send('devtools:toggle'),
+
   // Events from main → renderer
   on: (channel, cb) => {
     const allowed = ['sync:progress', 'sync:log', 'sync:complete', 'sync:error'];
