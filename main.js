@@ -21,6 +21,8 @@ let isQuitting = false;
 
 function createWindow() {
   if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
     win.focus();
     return;
   }
@@ -47,16 +49,16 @@ function createWindow() {
     sendToRenderer('sync:state', { running: syncRunning });
   });
 
-  // Intercept ALL close attempts (custom button, taskbar right-click, Alt+F4…)
+  // Intercept ALL close attempts (custom button, taskbar right-click, Alt+F4…).
+  // 'quit' → quit the app. 'tray' → let the window close and be destroyed (frees
+  // Chromium RAM); window-all-closed keeps the process alive in the tray, and a
+  // tray double-click rebuilds a fresh window.
   win.on('close', (e) => {
-    if (isQuitting) return; // app.quit() already in progress — let it close
-    const cfg = loadConfig();
-    if (cfg.closeBehavior === 'quit') {
+    if (isQuitting) return;
+    if (loadConfig().closeBehavior === 'quit') {
       app.quit(); // triggers before-quit → isQuitting = true
-    } else {
-      e.preventDefault(); // stay in tray, keep window alive (hidden by OS minimise)
-      win.hide();
     }
+    // tray mode: do nothing → window closes/destroys normally
   });
 
   win.on('closed', () => {
