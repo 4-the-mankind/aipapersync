@@ -249,6 +249,19 @@ function onSyncError(data) {
  * Wires up all Status-tab event listeners.
  * Called once by `renderer.js` after the DOM is ready.
  */
+// Test-only exports — the module object does not exist in browser context,
+// so this block is never reached when the file is loaded as a <script>.
+if (typeof module !== 'undefined') {
+  module.exports = {
+    _setSyncActive:  setSyncActive,
+    _setPauseLabel:  setPauseLabel,
+    _onSyncProgress: onSyncProgress,
+    _onSyncComplete: onSyncComplete,
+    _onSyncError:    onSyncError,
+    _getSyncState:   () => ({ active: syncActive, paused: syncPaused }),
+  };
+}
+
 async function initStatus() {
   // Pre-render folder bars so they're visible immediately at launch
   resetFolderBars();
