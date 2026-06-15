@@ -1,9 +1,7 @@
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
-
-const CONFIG_PATH = path.join(__dirname, '..', 'data', 'config.json');
+const fs           = require('fs');
+const { dataFile } = require('./paths');
 
 /** @type {import('../types').AppConfig} */
 const DEFAULTS = {
@@ -11,33 +9,36 @@ const DEFAULTS = {
   outputDir:        '%USERPROFILE%\\Downloads',
   noteFormat:       'pdf',
   startWithWindows: true,
-  syncOnStartup:    true,
+  syncOnStartup:    false,
   closeBehavior:    'tray',
 };
 
+function configPath() { return dataFile('config.json'); }
+
 /**
- * Reads and parses `data/config.json`.
+ * Reads and parses config.json from userData.
  * Falls back to {@link DEFAULTS} if the file is missing or malformed.
- *
  * @returns {import('../types').AppConfig}
  */
 function loadConfig() {
   try {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    // Strip a UTF-8 BOM if present — Node's JSON.parse chokes on it, which
+    // would otherwise silently reset every setting back to DEFAULTS.
+    const raw = fs.readFileSync(configPath(), 'utf8').replace(/^﻿/, '');
+    return { ...DEFAULTS, ...JSON.parse(raw) };
   } catch {
     return { ...DEFAULTS };
   }
 }
 
 /**
- * Serialises `cfg` and writes it to `data/config.json`.
- * Creates the `data/` directory if it does not exist.
- *
- * @param {import('../types').AppConfig} cfg - Config object to persist.
+ * Serialises `cfg` and writes it to userData/config.json.
+ * @param {import('../types').AppConfig} cfg
  */
 function saveConfig(cfg) {
-  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), 'utf8');
+  const p = configPath();
+  fs.mkdirSync(require('path').dirname(p), { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
 }
 
 module.exports = { loadConfig, saveConfig };

@@ -24,9 +24,7 @@
       "main/**/*",
       "sync/**/*",
       "renderer/**/*",
-      "assets/**/*",
-      "data/config.json",
-      "data/history.json"
+      "assets/**/*"
     ],
     "extraResources": [],
     "win": {
@@ -38,13 +36,13 @@
           ]
         }
       ],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icon.png",
-      "uninstallerIcon": "assets/icon.png",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
       "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
       "shortcutName": "AIPaper Sync"

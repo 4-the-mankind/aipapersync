@@ -2,44 +2,20 @@
 
 const { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, globalShortcut } = require('electron');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const { loadConfig, saveConfig }                        = require('./main/config');
 const { loadHistory, saveHistory, appendHistory }       = require('./main/history');
 const { getLastSync, setLastSync }                      = require('./main/syncstate');
+const { setStartup, reconcileStartup, effectiveStartWithWindows } = require('./main/startup');
 const log                                               = require('./main/logger');
 
-const ICON_PATH    = path.join(__dirname, 'assets', 'icon.png');
-const STARTUP_KEY  = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run';
-const STARTUP_NAME = 'AIPaperSync';
+const ICON_PATH = path.join(__dirname, 'assets', 'icon.ico');
 
 let tray = null;
 let win = null;
 let currentEngine = null;
 let syncRunning = false;
-
-// ── Windows startup registry ─────────────────────────────────────────────────
-
-function getStartupValue() {
-  const exePath = process.execPath;
-  const appPath = path.join(__dirname, 'main.js');
-  return `"${exePath}" "${appPath}"`;
-}
-
-function setStartup(enabled) {
-  const val = getStartupValue();
-  try {
-    if (enabled) {
-      execSync(`reg add "${STARTUP_KEY}" /v "${STARTUP_NAME}" /t REG_SZ /d "${val}" /f`, { windowsHide: true });
-    } else {
-      execSync(`reg delete "${STARTUP_KEY}" /v "${STARTUP_NAME}" /f`, { windowsHide: true });
-    }
-    return true;
-  } catch (e) {
-    log.error(`Registry ${enabled ? 'add' : 'delete'} failed: ${e.message}`);
-    return false;
-  }
-}
+let isQuitting = false;
 
 // ── BrowserWindow ────────────────────────────────────────────────────────────
 
@@ -69,6 +45,18 @@ function createWindow() {
   // Push the current sync state once the renderer is fully ready
   win.webContents.on('did-finish-load', () => {
     sendToRenderer('sync:state', { running: syncRunning });
+  });
+
+  // Intercept ALL close attempts (custom button, taskbar right-click, Alt+F4…)
+  win.on('close', (e) => {
+    if (isQuitting) return; // app.quit() already in progress — let it close
+    const cfg = loadConfig();
+    if (cfg.closeBehavior === 'quit') {
+      app.quit(); // triggers before-quit → isQuitting = true
+    } else {
+      e.preventDefault(); // stay in tray, keep window alive (hidden by OS minimise)
+      win.hide();
+    }
   });
 
   win.on('closed', () => {
@@ -144,7 +132,12 @@ async function runSync() {
 
 // ── IPC handlers ─────────────────────────────────────────────────────────────
 
-ipcMain.handle('config:get', () => loadConfig());
+ipcMain.handle('config:get', () => {
+  const cfg = loadConfig();
+  // Reflect live registry state so Task Manager changes show up in the toggle.
+  cfg.startWithWindows = effectiveStartWithWindows(cfg);
+  return cfg;
+});
 
 ipcMain.handle('config:save', (_e, cfg) => {
   saveConfig(cfg);
@@ -193,15 +186,7 @@ ipcMain.handle('startup:set', (_e, enabled) => setStartup(enabled));
 
 // Window control IPC (frameless window)
 ipcMain.on('window:minimize', () => { if (win) win.minimize(); });
-ipcMain.on('window:close', () => {
-  if (!win) return;
-  const cfg = loadConfig();
-  if (cfg.closeBehavior === 'quit') {
-    app.quit();
-  } else {
-    win.close(); // stays in tray via window-all-closed handler
-  }
-});
+ipcMain.on('window:close',    () => { if (win) win.close(); }); // handled by win.on('close')
 
 // DevTools — only available when running from source, never in a packaged build
 if (!app.isPackaged) {
@@ -263,10 +248,9 @@ app.whenReady().then(() => {
 
   const cfg = loadConfig();
 
-  // Apply startup registry on first run
-  if (cfg.startWithWindows) {
-    setStartup(true);
-  }
+  // Reconcile the "start with Windows" setting with the actual registry state
+  // (covers Task Manager enable/disable and first-run registration).
+  if (reconcileStartup(cfg)) saveConfig(cfg);
 
   if (cfg.syncOnStartup) {
     runSync();
@@ -278,11 +262,11 @@ app.on('second-instance', () => {
 });
 
 app.on('window-all-closed', (e) => {
-  // Stay in tray — do not quit
-  e.preventDefault();
+  if (!isQuitting) e.preventDefault(); // stay in tray unless quit was requested
 });
 
 app.on('before-quit', () => {
+  isQuitting = true;
   if (currentEngine) currentEngine.abort();
   log.info('App quitting');
 });
