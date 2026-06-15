@@ -17,6 +17,10 @@ let currentEngine = null;
 let syncRunning = false;
 let isQuitting = false;
 
+// Keeps the last 200 log lines so a reopened window can restore them.
+const LOG_BUFFER_MAX = 200;
+const logBuffer = [];
+
 // ── BrowserWindow ────────────────────────────────────────────────────────────
 
 function createWindow() {
@@ -67,6 +71,10 @@ function createWindow() {
 }
 
 function sendToRenderer(channel, payload) {
+  if (channel === 'sync:log') {
+    logBuffer.push(payload);
+    if (logBuffer.length > LOG_BUFFER_MAX) logBuffer.shift();
+  }
   if (win && !win.isDestroyed()) {
     win.webContents.send(channel, payload);
   }
@@ -161,6 +169,8 @@ ipcMain.handle('app:version', () => app.getVersion());
 
 ipcMain.handle('sync:now',    () => runSync());
 ipcMain.handle('sync:status', () => syncRunning);
+
+ipcMain.handle('log:getBuffer', () => [...logBuffer]);
 
 ipcMain.handle('sync:abort', () => {
   if (currentEngine) currentEngine.abort();

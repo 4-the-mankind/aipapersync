@@ -21,6 +21,9 @@ contextBridge.exposeInMainWorld('api', {
   // Connectivity
   checkConnectivity: () => ipcRenderer.invoke('tablet:ping'),
 
+  // Log buffer — restores log panel content after window close/reopen
+  getLogBuffer: () => ipcRenderer.invoke('log:getBuffer'),
+
   // App state (last sync summary, persists across history clears)
   getAppState: () => ipcRenderer.invoke('appstate:get'),
   getVersion:  () => ipcRenderer.invoke('app:version'),

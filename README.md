@@ -20,7 +20,7 @@ AIPaper Sync is a small Windows program that automatically retrieves the content
 
 ### For regular users — installer (recommended)
 
-1. Download the file **`AIPaper Sync Setup 1.0.0.exe`** from whoever shared this program with you.
+1. Download the file **`AIPaper Sync Setup 1.x.x.exe`** from whoever shared this program with you.
 2. Double-click it and follow the on-screen steps.
 3. Once installed, AIPaper Sync will appear in your Start menu and will start automatically with Windows.
 

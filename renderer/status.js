@@ -280,6 +280,12 @@ async function initStatus() {
     if (running && !syncActive) setSyncActive(true);
   });
 
+  // Restore log lines that arrived while the window was closed
+  try {
+    const lines = await window.api.getLogBuffer();
+    lines.forEach(msg => appendLog(msg));
+  } catch { /* ignore */ }
+
   // Load persisted last-sync (survives history clears)
   try {
     const appState = await window.api.getAppState();
