@@ -58,7 +58,9 @@ function renderPage() {
  */
 function renderHistoryRow(tbody, entry) {
   const tr         = document.createElement('tr');
-  const badgeClass = entry.action === 'Overwritten' ? 'badge-overwritten' : 'badge-created';
+  const badgeClass = entry.action === 'Overwritten' ? 'badge-overwritten'
+                   : entry.action === 'Deleted'    ? 'badge-deleted'
+                   :                                 'badge-created';
   const safePath   = escapeHtml(entry.filePath);
   const safeFolder = escapeHtml(entry.folder);
 

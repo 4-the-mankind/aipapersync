@@ -1,9 +1,10 @@
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 const AdmZip = require('adm-zip');
-const log  = require('../main/logger');
+const log    = require('../main/logger');
 const { loadSyncState, saveSyncState } = require('../main/syncstate');
 
 const APP_TYPES = [
@@ -18,20 +19,22 @@ const APP_TYPES = [
 const POLL_INTERVAL_MS       = 2000;
 const EMPTY_FOLDER_THRESHOLD = 3;
 const DOWNLOAD_SPEED_BPS     = 1 * 1024 * 1024; // 1 MB/s conservative
-const DOWNLOAD_TIMEOUT_MIN   = 60_000;
+const DOWNLOAD_TIMEOUT_MIN   = 5 * 60_000;         // 5 minutes floor
 const DOWNLOAD_TIMEOUT_MAX   = 20 * 60_000;
 
 class SyncEngine {
-  constructor({ tabletUrl, outputDir, noteFormat, incremental, onProgress, onLog }) {
-    this.tabletUrl   = tabletUrl.replace(/\/$/, '');
-    this.outputDir   = outputDir;
-    this.noteFormat  = noteFormat  || 'pdf';
-    this.incremental = incremental !== false;
-    this.onProgress  = onProgress  || (() => {});
-    this.onLog       = onLog       || (() => {});
-    this.aborted     = false;
-    this.newHistory  = [];
-    this.syncState   = loadSyncState();
+  constructor({ tabletUrl, outputDir, noteFormat, incremental, deleteOnTabletDelete, onProgress, onLog }) {
+    this.tabletUrl            = tabletUrl.replace(/\/$/, '');
+    this.outputDir            = outputDir;
+    this.noteFormat           = noteFormat  || 'pdf';
+    this.incremental          = incremental !== false;
+    this.deleteOnTabletDelete = !!deleteOnTabletDelete;
+    this.onProgress           = onProgress  || (() => {});
+    this.onLog                = onLog       || (() => {});
+    this.aborted              = false;
+    this.newHistory           = [];
+    this.syncState            = loadSyncState();
+    this.manifest             = this.syncState.__manifest || {};
   }
 
   abort()  {
@@ -100,15 +103,14 @@ class SyncEngine {
 
   /**
    * Recursively walks the tablet folder tree and returns the maximum
-   * `updateTime` (ms) found across all files and subfolders.
-   * Uses the `updateTime` on folders as a shortcut — if a folder's
-   * `updateTime` is not newer than `lastSyncMs`, its subtree is pruned.
+   * `updateTime` (ms) found. Subfolders whose `updateTime` hasn't changed
+   * since `lastSyncMs` are pruned for efficiency.
    *
    * @param {string} appType
-   * @param {string} folderId   - `noteId` of the folder, or '' for root.
-   * @param {string} folderName - Display name of the folder.
-   * @param {number} lastSyncMs - Timestamp of the last successful sync.
-   * @returns {Promise<number>} Maximum updateTime found (0 if none).
+   * @param {string} folderId    - noteId of the folder, or '' for root
+   * @param {string} folderName  - Display name of the folder
+   * @param {number} lastSyncMs  - Timestamp of the last successful sync
+   * @returns {Promise<number>} Maximum updateTime found (0 if none)
    */
   async getMaxUpdateTime(appType, folderId, folderName, lastSyncMs) {
     const data  = await this.get(
@@ -120,10 +122,8 @@ class SyncEngine {
     for (const item of items) {
       if (item.updateTime > maxTime) maxTime = item.updateTime;
 
-      // Recurse into non-empty subfolders. Always enter when updateTime === 0
-      // (the tablet doesn't track folder-level timestamps for system folders),
-      // prune only when we have a known timestamp older than the last sync.
-      if (item.isFolder && !item.isEmptyFolder && (item.updateTime === 0 || item.updateTime > lastSyncMs)) {
+      if (item.isFolder && !item.isEmptyFolder &&
+          (item.updateTime === 0 || item.updateTime > lastSyncMs)) {
         const subMax = await this.getMaxUpdateTime(appType, item.noteId, item.fileName, lastSyncMs);
         if (subMax > maxTime) maxTime = subMax;
       }
@@ -188,26 +188,34 @@ class SyncEngine {
     // ── Incremental check: skip download if nothing changed ────────────────
     // We always store the tablet's own maxUpdateTime (not PC's Date.now()) so
     // the comparison is clock-independent and survives tablet/PC clock skew.
+    // We only skip when the manifest also has entries for this folder, proving
+    // we've successfully synced it at least once (cache is warm). An empty
+    // manifest means first run OR the user reset the cache — always download.
+    //
+    // Note: the tablet does NOT update timestamps when a file is unlocked, so
+    // the only reliable way to pick up a newly-unlocked file is a Force Sync
+    // (which clears the manifest) or to wait for the next content change.
     let maxUpdateTime = 0;
     if (this.incremental) {
       this.log(`[${label}] Checking for changes...`);
       maxUpdateTime = await this.getMaxUpdateTime(appType, '', label, lastSyncMs);
 
       if (lastSyncMs > 0 && maxUpdateTime > 0 && maxUpdateTime <= lastSyncMs) {
-        if (this.hasLocalFiles(label)) {
+        if (Object.keys(this.manifest[appType] || {}).length > 0) {
           this.onProgress({ type: 'folder-skipped', folder: label });
           return { created: 0, overwritten: 0, skipped: 0, entirelySkipped: true };
         }
-        this.log(`[${label}] Local files missing — re-downloading despite no tablet changes`);
+        this.log(`[${label}] No sync cache — downloading`);
       }
     }
 
     const fileName = `${label}.zip`;
 
-    // 1. Trigger packaging
+    // 1. Trigger packaging — childFileFormat tells the tablet which format to include
     this.log(`[${label}] Packaging...`);
+    const fmt = this.noteFormat !== 'both' ? `&childFileFormat=${this.noteFormat}` : '';
     const pkgData = await this.get(
-      `/packageFile?appType=${appType}&fileName=${encodeURIComponent(fileName)}&isFolder=true&fileFormat=zip`
+      `/packageFile?appType=${appType}&fileName=${encodeURIComponent(fileName)}&isFolder=true&fileFormat=zip${fmt}`
     );
     if (pkgData.code !== 200) throw new Error(`packageFile failed: code ${pkgData.code}`);
     const filePath = pkgData.data;
@@ -233,15 +241,17 @@ class SyncEngine {
     await this.downloadFile(filePath, tmpZip, label, fileSize);
     if (this.aborted) { this.deleteSafe(tmpZip); return { created: 0, overwritten: 0, skipped: 0 }; }
 
-    // 5. Extract — skip individual unchanged files
-    const counts = await this.extractZip(tmpZip, label);
+    // 5. Extract — skip unchanged files (by content hash), optionally delete removed ones
+    const counts = await this.extractZip(tmpZip, label, appType);
 
     // 6. Cleanup
     this.deleteSafe(tmpZip);
 
     // 7. Persist the tablet's own maxUpdateTime (not PC clock) so next run's
     //    comparison is clock-independent and survives tablet/PC time drift.
-    this.syncState[appType] = maxUpdateTime > 0 ? maxUpdateTime : Date.now();
+    //    Also persist the content-hash manifest used for incremental skip.
+    this.syncState[appType]    = maxUpdateTime > 0 ? maxUpdateTime : Date.now();
+    this.syncState.__manifest  = this.manifest;
     saveSyncState(this.syncState);
 
     return counts;
@@ -353,33 +363,53 @@ class SyncEngine {
   }
 
   /**
-   * Extracts the ZIP. When `incremental` is true, skips files whose local
-   * mtime is >= the ZIP entry's mtime (file unchanged since last sync).
+   * Extracts the ZIP.
+   * - Format filter: skips entries whose extension doesn't match `this.noteFormat`.
+   * - Incremental skip: computes MD5 of each entry; skips if hash matches the
+   *   stored manifest (reliable — ZIP entry timestamps are always "now" on the
+   *   tablet, making mtime comparison useless).
+   * - Delete removed: if `deleteOnTabletDelete`, deletes local files that were
+   *   not present in this ZIP (i.e. removed from the tablet).
    *
    * @param {string} zipPath
    * @param {string} label
+   * @param {string} appType
    * @returns {Promise<{created, overwritten, skipped}>}
    */
-  async extractZip(zipPath, label) {
+  async extractZip(zipPath, label, appType) {
     this.log(`[${label}] Extracting...`);
-    const entries = new AdmZip(zipPath).getEntries();
+    const entries        = new AdmZip(zipPath).getEntries();
+    const folderManifest = (this.manifest[appType] = this.manifest[appType] || {});
+    const syncedPaths    = new Set();
     let created = 0, overwritten = 0, skipped = 0;
 
     for (const entry of entries) {
       if (entry.isDirectory) continue;
-      const destFile = path.join(this.outputDir, entry.entryName);
-      fs.mkdirSync(path.dirname(destFile), { recursive: true });
 
-      const existed = fs.existsSync(destFile);
-      if (existed && this.incremental) {
-        const localMtimeMs = fs.statSync(destFile).mtimeMs;
-        const entryTime    = entry.header.time;
-        const entryMs      = entryTime instanceof Date ? entryTime.getTime() : 0;
-        if (entryMs > 0 && localMtimeMs >= entryMs) { skipped++; continue; }
+      // Skip entries whose format doesn't match the user's setting
+      if (this.noteFormat !== 'both') {
+        const ext = path.extname(entry.entryName).slice(1).toLowerCase();
+        if (ext !== this.noteFormat) continue;
       }
 
+      const destFile = path.join(this.outputDir, entry.entryName);
+      fs.mkdirSync(path.dirname(destFile), { recursive: true });
+      syncedPaths.add(destFile);
+
+      const existed = fs.existsSync(destFile);
+      const data    = entry.getData();
+      const hash    = crypto.createHash('md5').update(data).digest('hex');
+      const key     = entry.entryName;
+
+      if (existed && this.incremental && folderManifest[key] === hash) {
+        skipped++;
+        continue;
+      }
+
+      fs.writeFileSync(destFile, data);
+      folderManifest[key] = hash;
+
       const action = existed ? 'Overwritten' : 'Created';
-      fs.writeFileSync(destFile, entry.getData());
       if (existed) overwritten++; else created++;
 
       this.newHistory.push({
@@ -387,27 +417,30 @@ class SyncEngine {
       });
     }
 
-    return { created, overwritten, skipped };
-  }
-
-  /**
-   * Returns true if the local output subfolder for `label` exists and contains
-   * at least one file (recursively). Used to detect when the user deleted local
-   * files so we can force a re-download even when the tablet reports no changes.
-   * @param {string} label
-   * @returns {boolean}
-   */
-  hasLocalFiles(label) {
-    const dir = path.join(this.outputDir, label);
-    if (!fs.existsSync(dir)) return false;
-    const scan = (d) => {
-      for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
-        if (entry.isFile()) return true;
-        if (entry.isDirectory() && scan(path.join(d, entry.name))) return true;
+    // Remove local files that no longer exist on the tablet
+    if (this.deleteOnTabletDelete) {
+      const localDir = path.join(this.outputDir, label);
+      if (fs.existsSync(localDir)) {
+        const scan = (d) => {
+          for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
+            const full = path.join(d, ent.name);
+            if (ent.isFile()) {
+              if (this.noteFormat === 'both' ||
+                  ent.name.toLowerCase().endsWith(`.${this.noteFormat}`)) {
+                if (!syncedPaths.has(full)) {
+                  this.deleteSafe(full);
+                  this.log(`[${label}] Deleted (removed from tablet): ${path.basename(full)}`);
+                  this.newHistory.push({ date: new Date().toISOString(), folder: label, filePath: full, action: 'Deleted' });
+                }
+              }
+            } else if (ent.isDirectory()) scan(full);
+          }
+        };
+        scan(localDir);
       }
-      return false;
-    };
-    return scan(dir);
+    }
+
+    return { created, overwritten, skipped };
   }
 
   /** @param {string} filePath */

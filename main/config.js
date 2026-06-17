@@ -5,12 +5,13 @@ const { dataFile } = require('./paths');
 
 /** @type {import('../types').AppConfig} */
 const DEFAULTS = {
-  tabletUrl:        'http://192.168.0.69:8090',
-  outputDir:        '%USERPROFILE%\\Downloads',
-  noteFormat:       'pdf',
-  startWithWindows: true,
-  syncOnStartup:    false,
-  closeBehavior:    'tray',
+  tabletUrl:            'http://192.168.0.69:8090',
+  outputDir:            '%USERPROFILE%\\Downloads',
+  noteFormat:           'pdf',
+  startWithWindows:     true,
+  syncOnStartup:        false,
+  closeBehavior:        'tray',
+  deleteOnTabletDelete: false,
 };
 
 function configPath() { return dataFile('config.json'); }

@@ -131,6 +131,7 @@ function setSyncActive(active) {
   syncActive = active;
   syncPaused = false;
   $('btn-sync-now').style.display      = active ? 'none' : '';
+  $('btn-force-sync').style.display    = active ? 'none' : '';
   $('btn-sync-controls').style.display = active ? 'flex' : 'none';
   setPauseLabel(false);
 }
@@ -302,6 +303,13 @@ async function initStatus() {
     if (syncActive) return;
     appendLog('Starting sync...');
     await window.api.syncNow();
+  });
+
+  // Force full sync — clears cache so all files are re-downloaded
+  $('btn-force-sync').addEventListener('click', async () => {
+    if (syncActive) return;
+    appendLog('Force sync: clearing cache and re-downloading all files...');
+    await window.api.forceSyncNow();
   });
 
   // Pause button

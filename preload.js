@@ -12,11 +12,12 @@ contextBridge.exposeInMainWorld('api', {
   clearHistory: () => ipcRenderer.invoke('history:clear'),
 
   // Sync
-  syncNow:    () => ipcRenderer.invoke('sync:now'),
-  syncStatus: () => ipcRenderer.invoke('sync:status'),
-  abortSync:  () => ipcRenderer.invoke('sync:abort'),
-  pauseSync:  () => ipcRenderer.invoke('sync:pause'),
-  resumeSync: () => ipcRenderer.invoke('sync:resume'),
+  syncNow:      () => ipcRenderer.invoke('sync:now'),
+  forceSyncNow: () => ipcRenderer.invoke('sync:force'),
+  syncStatus:   () => ipcRenderer.invoke('sync:status'),
+  abortSync:    () => ipcRenderer.invoke('sync:abort'),
+  pauseSync:    () => ipcRenderer.invoke('sync:pause'),
+  resumeSync:   () => ipcRenderer.invoke('sync:resume'),
 
   // Connectivity
   checkConnectivity: () => ipcRenderer.invoke('tablet:ping'),

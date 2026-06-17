@@ -51,6 +51,7 @@
 
       <div id="sync-action-row">
         <button class="btn btn-sync" id="btn-sync-now">&#x21BB; &nbsp;Sync Now</button>
+        <button class="btn btn-outline btn-force-sync" id="btn-force-sync" title="Clears the local sync cache and re-downloads all files — useful after unlocking a file on the tablet">&#x21BA; Force full sync</button>
         <div id="btn-sync-controls" style="display:none">
           <button class="btn-half btn-half-pause" id="btn-pause">
             <svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="4" height="16" rx="1"/><rect x="15" y="4" width="4" height="16" rx="1"/></svg>
@@ -158,6 +159,7 @@
               <select id="cfg-note-format">
                 <option value="pdf">PDF</option>
                 <option value="note">Note (original)</option>
+                <option value="both">Both (PDF + Note)</option>
               </select>
             </div>
           </div>
@@ -181,6 +183,18 @@
             <div class="setting-control">
               <label class="toggle">
                 <input type="checkbox" id="cfg-incremental">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">Delete removed files</div>
+              <div class="setting-desc">Remove local files that no longer exist on the tablet</div>
+            </div>
+            <div class="setting-control">
+              <label class="toggle">
+                <input type="checkbox" id="cfg-delete-removed">
                 <span class="toggle-slider"></span>
               </label>
             </div>

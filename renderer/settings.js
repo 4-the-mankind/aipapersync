@@ -24,13 +24,14 @@ const SAVE_DEBOUNCE_MS = 600;
  */
 async function saveSettings() {
   const cfg = {
-    tabletUrl:        $('cfg-tablet-url').value.trim(),
-    outputDir:        $('cfg-output-dir').value.trim(),
-    noteFormat:       $('cfg-note-format').value,
-    syncOnStartup:    $('cfg-sync-on-startup').checked,
-    incremental:      $('cfg-incremental').checked,
-    startWithWindows: $('cfg-start-with-windows').checked,
-    closeBehavior:    $('cfg-close-behavior').value,
+    tabletUrl:            $('cfg-tablet-url').value.trim(),
+    outputDir:            $('cfg-output-dir').value.trim(),
+    noteFormat:           $('cfg-note-format').value,
+    syncOnStartup:        $('cfg-sync-on-startup').checked,
+    incremental:          $('cfg-incremental').checked,
+    deleteOnTabletDelete: $('cfg-delete-removed').checked,
+    startWithWindows:     $('cfg-start-with-windows').checked,
+    closeBehavior:        $('cfg-close-behavior').value,
   };
 
   await window.api.saveConfig(cfg);
@@ -67,6 +68,7 @@ async function loadSettings() {
   $('cfg-note-format').value          = cfg.noteFormat           || 'pdf';
   $('cfg-sync-on-startup').checked    = !!cfg.syncOnStartup;
   $('cfg-incremental').checked        = cfg.incremental !== false;
+  $('cfg-delete-removed').checked     = !!cfg.deleteOnTabletDelete;
   $('cfg-start-with-windows').checked = !!cfg.startWithWindows;
   $('cfg-close-behavior').value       = cfg.closeBehavior || 'tray';
 }
@@ -89,6 +91,7 @@ function initSettings() {
   $('cfg-note-format').addEventListener('change', saveSettings);
   $('cfg-sync-on-startup').addEventListener('change', saveSettings);
   $('cfg-incremental').addEventListener('change', saveSettings);
+  $('cfg-delete-removed').addEventListener('change', saveSettings);
   $('cfg-start-with-windows').addEventListener('change', saveSettings);
   $('cfg-close-behavior').addEventListener('change', saveSettings);
 }

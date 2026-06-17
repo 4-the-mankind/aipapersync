@@ -1,6 +1,6 @@
 {
   "name": "aipapersync",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Viewood AIPaper tablet sync — Windows tray application",
   "main": "main.js",
   "scripts": {

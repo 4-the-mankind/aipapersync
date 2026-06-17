@@ -215,13 +215,21 @@ html, body {
 
 #sync-action-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
+.btn-force-sync {
+  font-size: 11px;
+  padding: 6px 14px;
+  color: var(--text-muted);
+  border-color: var(--border);
+  align-self: flex-start;
+}
+
 .btn-sync {
-  flex: 1;
+  width: 100%;
   justify-content: center;
   background: #fff;
   color: var(--text);
@@ -233,7 +241,7 @@ html, body {
 .btn-sync:active { transform: scale(.98); }
 
 #btn-sync-controls {
-  flex: 1;
+  width: 100%;
   display: flex;
   border: 1.5px solid var(--text);
   border-radius: var(--radius);
@@ -377,6 +385,7 @@ tr:hover td { background: var(--surface); }
 }
 .badge-overwritten { background: #FEF3C7; color: #92400E; }
 .badge-created     { background: #D1FAE5; color: #065F46; }
+.badge-deleted     { background: #FEE2E2; color: #991B1B; }
 
 .filepath-cell { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 12px; }
 

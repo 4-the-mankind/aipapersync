@@ -5,7 +5,7 @@ const path = require('path');
 
 const { loadConfig, saveConfig }                        = require('./main/config');
 const { loadHistory, saveHistory, appendHistory }       = require('./main/history');
-const { getLastSync, setLastSync }                      = require('./main/syncstate');
+const { loadSyncState, saveSyncState, getLastSync, setLastSync } = require('./main/syncstate');
 const { setStartup, reconcileStartup, effectiveStartWithWindows } = require('./main/startup');
 const log                                               = require('./main/logger');
 
@@ -103,11 +103,12 @@ async function runSync() {
   sendToRenderer('sync:started');
 
   currentEngine = new SyncEngine({
-    tabletUrl:   cfg.tabletUrl,
-    outputDir:   cfg.outputDir,
-    noteFormat:  cfg.noteFormat,
-    incremental: cfg.incremental !== false,
-    onProgress:  (evt) => sendToRenderer('sync:progress', evt),
+    tabletUrl:            cfg.tabletUrl,
+    outputDir:            cfg.outputDir,
+    noteFormat:           cfg.noteFormat,
+    incremental:          cfg.incremental !== false,
+    deleteOnTabletDelete: !!cfg.deleteOnTabletDelete,
+    onProgress:           (evt) => sendToRenderer('sync:progress', evt),
     onLog: (msg) => {
       log.info(msg);
       sendToRenderer('sync:log', msg);
@@ -169,6 +170,18 @@ ipcMain.handle('app:version', () => app.getVersion());
 
 ipcMain.handle('sync:now',    () => runSync());
 ipcMain.handle('sync:status', () => syncRunning);
+
+ipcMain.handle('sync:force', () => {
+  // Clear all per-folder timestamps and the content-hash manifest so the
+  // next sync re-downloads everything (needed after unlocking a file on the
+  // tablet, since the tablet doesn't bump updateTime on unlock).
+  const s = loadSyncState();
+  const fresh = {};
+  if (s.__lastSync)       fresh.__lastSync       = s.__lastSync;
+  if (s.__lastSyncResult) fresh.__lastSyncResult = s.__lastSyncResult;
+  saveSyncState(fresh);
+  return runSync();
+});
 
 ipcMain.handle('log:getBuffer', () => [...logBuffer]);
 
